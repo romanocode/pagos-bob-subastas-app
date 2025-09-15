@@ -1,12 +1,59 @@
-# React + Vite
+# 📦 Sistema de Gestión de Pagos y Garantías (DEMO)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este repositorio contiene la parte **frontend** del proyecto **BOB Subastas – Sistema de Gestión de Pagos y Garantías (DEMO)**.  
+⚠️ Importante: Este es un proyecto académico en desarrollo, creado por estudiantes con fines de práctica y presentación.  
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 Resumen del Proyecto
+**BOB Subastas** es un marketplace de subastas industriales que requiere un sistema robusto para gestionar **pagos de garantías, saldos de usuarios y reembolsos** en su línea de negocio de vehículos.  
 
-## Expanding the ESLint configuration
+Actualmente:
+- Los pagos se registran manualmente vía formularios de Google.  
+- No hay centralización de datos de saldos.  
+- Los cálculos son manuales y propensos a errores.  
+- No existe trazabilidad completa de los movimientos financieros.  
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🎯 Objetivo de la DEMO
+Construir un sistema web que **demuestre la capacidad de:**
+- Centralizar y automatizar la gestión de garantías.  
+- Manejar saldos de usuarios de forma transparente.  
+- Procesar reembolsos de manera eficiente.  
+- Validar pagos con trazabilidad completa.  
+
+---
+
+## 🚀 Funcionalidades (DEMO)
+
+### 1. Módulo de Gestión de Usuarios (sin autenticación)
+- **Panel de Usuario DEMO**: saldo actual, historial ficticio, subastas simuladas y solicitudes de reembolso.  
+- **Panel de Administrador DEMO**: gestión de subastas simuladas, validación de pagos ficticios, aprobación de reembolsos y reportes financieros de ejemplo.  
+
+### 2. Módulo de Subastas (solo visualización)
+- Visualización de subastas finalizadas.  
+- Estados: Finalizada, Cancelada.  
+- Ganadores ya asignados.  
+- ❌ No incluye sistema de pujas (ya existe en BOB).  
+
+### 3. Módulo de Pagos y Garantías
+- Registro de depósitos de garantía.  
+- Validación manual de transferencias (simulada).  
+- Cálculo automático de penalidades (30%).  
+- Gestión de estados de pago.  
+
+### 4. Módulo de Billetera Digital
+- Saldos en tiempo real (simulados).  
+- Historial completo de movimientos ficticios.  
+- Retenciones temporales.  
+- Cálculo automático de disponibilidad.  
+
+### 5. Módulo de Reembolsos
+- Solicitudes de reembolso parciales/totales.  
+- Procesamiento por lotes (ejemplo: miércoles).  
+- Estados: Pendiente, Aprobado, Procesado.  
+- Trazabilidad completa de ejemplo.  
+
+
+---
