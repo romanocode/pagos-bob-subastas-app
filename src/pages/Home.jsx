@@ -68,6 +68,14 @@ const Home = () => {
             >
               Ver Demo Admin
             </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => handleStartDemo('xander')}
+              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white"
+            >
+              Ver Demo Xander
+            </Button>
           </div>
 
           {/* Current User Info */}
