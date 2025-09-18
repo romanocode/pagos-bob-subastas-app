@@ -155,7 +155,7 @@ const DashboardCliente = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              Movimientos Recientes
+              Garantías Recientes
             </h2>
             <button
               type="button"
@@ -192,9 +192,9 @@ const DashboardCliente = () => {
             className="bg-white p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all text-left"
             onClick={() => navigate("/cliente/movimientos")}
           >
-            <div className="text-blue-600 font-medium">Ver Movimientos</div>
+            <div className="text-blue-600 font-medium">Ver Garantías</div>
             <div className="text-sm text-gray-600 mt-1">
-              Consulta tu historial financiero
+              Consulta tu historial de garantías
             </div>
           </button>
           <button

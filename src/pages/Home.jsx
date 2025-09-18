@@ -59,6 +59,14 @@ const Home = () => {
             <Link to="/login" className="bg-white hover:bg-gray-100 text-bob-primary border border-bob-primary px-8 py-3 rounded-md font-medium transition-colors">
               Ver Demo Admin
             </Link>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => handleStartDemo('xander')}
+              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white"
+            >
+              Ver Demo Xander
+            </Button>
           </div>
 
           {/* Current User Info */}

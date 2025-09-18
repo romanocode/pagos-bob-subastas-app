@@ -9,7 +9,8 @@ import {
   CreditCard,
   Gavel,
   RefreshCw,
-  BarChart3
+  BarChart3,
+  Shield
 } from 'lucide-react';
 
 const Sidebar = ({ userType }) => {
@@ -28,7 +29,7 @@ const Sidebar = ({ userType }) => {
     },
     {
       path: '/cliente/movimientos',
-      name: 'Movimientos',
+      name: 'Garantías',
       icon: FileText
     },
     {
@@ -66,7 +67,35 @@ const Sidebar = ({ userType }) => {
     }
   ];
 
-  const menuItems = userType === 'admin' ? adminMenuItems : clienteMenuItems;
+  const xanderMenuItems = [
+    {
+      path: '/xander/dashboard',
+      name: 'Dashboard Xander',
+      icon: BarChart3
+    },
+    {
+      path: '/xander/clientes',
+      name: 'Clientes',
+      icon: Users
+    },
+    {
+      path: '/xander/garantias',
+      name: 'Garantías',
+      icon: Shield
+    },
+    {
+      path: '/xander/reembolsos',
+      name: 'Reembolsos',
+      icon: RefreshCw
+    }
+  ];
+
+  let menuItems = clienteMenuItems;
+  if (userType === 'admin') {
+    menuItems = adminMenuItems;
+  } else if (userType === 'xander') {
+    menuItems = xanderMenuItems;
+  }
 
   return (
     <div className="fixed left-0 top-16 h-full w-64 bg-white border-r border-gray-200 overflow-y-auto">

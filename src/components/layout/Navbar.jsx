@@ -24,7 +24,7 @@ export default function Navbar() {
         aria-label="Ir a la página de inicio"
       >
         <img
-          src="/logo-bob.svg"
+          src="https://www.somosbob.com/apple-touch-icon.png"
           alt="Logo BOB Subastas"
           className="h-8 w-8"
         />
@@ -34,24 +34,7 @@ export default function Navbar() {
 
       {/* Menú de navegación */}
       <div className="flex items-center space-x-6">
-        <Link
-          to="/categorias"
-          className="text-gray-700 hover:text-bob-primary transition-colors"
-        >
-          Categorías
-        </Link>
-        <Link
-          to="/subastas"
-          className="text-gray-700 hover:text-bob-primary transition-colors"
-        >
-          Subastas
-        </Link>
-        <Link
-          to="/quiero-vender"
-          className="text-gray-700 hover:text-bob-primary transition-colors"
-        >
-          Quiero Vender
-        </Link>
+      
         {currentUser ? (
           <button
             onClick={handleLogout}

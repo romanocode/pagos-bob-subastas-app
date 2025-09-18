@@ -43,8 +43,16 @@ export const AuthProvider = ({ children }) => {
     setUserType(type);
     if (type === 'cliente') {
       setCurrentUser(USUARIOS_DEMO[0]);
-    } else {
+    } else if (type === 'admin') {
       setCurrentUser(USUARIOS_DEMO[1]);
+    } else if (type === 'xander') {
+      setCurrentUser(USUARIOS_DEMO[2] || {
+        id: 3,
+        nombre: 'Xander Demo',
+        email: 'xander@demo.com',
+        tipo_usuario: 'XANDER',
+        saldo: 15000
+      });
     }
   };
 
