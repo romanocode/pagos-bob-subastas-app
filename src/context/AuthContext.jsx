@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { USUARIOS_DEMO } from '../data/mockData';
 
 const AuthContext = createContext();
@@ -13,9 +13,31 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  // Para demo, simulamos usuario logueado
-  const [currentUser, setCurrentUser] = useState(USUARIOS_DEMO[0]); // Cliente por defecto
-  const [userType, setUserType] = useState('cliente'); // 'cliente' o 'admin'
+  // Inicializar estado desde localStorage si existe
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUser = localStorage.getItem('bobSubastasUser');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  
+  const [userType, setUserType] = useState(() => {
+    return localStorage.getItem('bobSubastasUserType') || null;
+  });
+
+  // Guardar en localStorage cuando cambie el usuario
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('bobSubastasUser', JSON.stringify(currentUser));
+      localStorage.setItem('bobSubastasUserType', userType);
+    } else {
+      localStorage.removeItem('bobSubastasUser');
+      localStorage.removeItem('bobSubastasUserType');
+    }
+  }, [currentUser, userType]);
+
+  const login = (userData) => {
+    setCurrentUser(userData);
+    setUserType(userData.role);
+  };
 
   const switchUserType = (type) => {
     setUserType(type);
@@ -29,15 +51,18 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setCurrentUser(null);
     setUserType(null);
+    localStorage.removeItem('bobSubastasUser');
+    localStorage.removeItem('bobSubastasUserType');
   };
 
   const value = {
     currentUser,
     userType,
+    login,
     switchUserType,
     logout,
     isAuthenticated: !!currentUser,
-    isAdmin: currentUser?.tipo_usuario?.includes('ADMIN')
+    isAdmin: userType === 'admin'
   };
 
   return (
