@@ -98,7 +98,7 @@ const Sidebar = ({ userType }) => {
   }
 
   return (
-    <div className="fixed left-0 top-16 h-full w-64 bg-white border-r border-gray-200 overflow-y-auto">
+    <div className="fixed left-0 top-[104px] h-[calc(100vh-104px)] w-64 bg-white border-r border-gray-200 overflow-y-auto z-10">
       <nav className="mt-6 px-4">
         <ul className="space-y-2">
           {menuItems.map((item) => {

@@ -51,24 +51,6 @@ const Home = () => {
             en subastas industriales. <span className="font-semibold text-bob-primary">Versión DEMO</span>
           </p>
 
-          {/* Demo Buttons */}
-          <div className="mt-10 flex justify-center space-x-6">
-            <Link to="/login" className="bg-bob-primary hover:bg-bob-primary-dark text-white px-8 py-3 rounded-md font-medium transition-colors">
-              Ver Demo Cliente
-            </Link>
-            <Link to="/login" className="bg-white hover:bg-gray-100 text-bob-primary border border-bob-primary px-8 py-3 rounded-md font-medium transition-colors">
-              Ver Demo Admin
-            </Link>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={() => handleStartDemo('xander')}
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white"
-            >
-              Ver Demo Xander
-            </Button>
-          </div>
-
           {/* Current User Info */}
           {currentUser && (
             <div className="mt-6 p-4 bg-teal-50 rounded-lg inline-block">
