@@ -51,8 +51,6 @@ const Home = () => {
             en subastas industriales. <span className="font-semibold text-bob-primary">Versión DEMO</span>
           </p>
 
-         
-
           {/* Current User Info */}
           {currentUser && (
             <div className="mt-6 p-4 bg-teal-50 rounded-lg inline-block">
