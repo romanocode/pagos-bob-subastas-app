@@ -29,7 +29,7 @@ const Sidebar = ({ userType }) => {
     },
     {
       path: '/cliente/movimientos',
-      name: 'Movimientos',
+      name: 'Garantías',
       icon: FileText
     },
     {
