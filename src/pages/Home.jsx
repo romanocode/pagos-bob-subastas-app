@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -36,63 +35,30 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-white">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
-            <span className="text-blue-700">BOB Subastas</span>
+            <span className="text-bob-primary">BOB Subastas</span>
             <br />
             <span className="text-3xl sm:text-4xl md:text-5xl">Sistema de Gestión</span>
           </h1>
           
           <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-600">
             Plataforma integral para la gestión de pagos, garantías y reembolsos 
-            en subastas industriales. <span className="font-semibold text-blue-700">Versión DEMO</span>
+            en subastas industriales. <span className="font-semibold text-bob-primary">Versión DEMO</span>
           </p>
-
-          {/* Demo Buttons */}
-          <div className="mt-10 flex justify-center space-x-6">
-            <Button
-              size="lg"
-              onClick={() => handleStartDemo('cliente')}
-              className="px-8 py-3"
-            >
-              Ver Demo Cliente
-            </Button>
-            {/* <Button
-              variant="outline"
-              size="lg"
-              onClick={() => handleStartDemo('admin')}
-              className="px-8 py-3"
-            >
-              Ver Demo Admin
-            </Button> */}
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={() => handleStartDemo('xander')}
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white"
-            >
-              Ver Demo Xander
-            </Button>
-          </div>
 
           {/* Current User Info */}
           {currentUser && (
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg inline-block">
-              <p className="text-sm text-blue-700">
+            <div className="mt-6 p-4 bg-teal-50 rounded-lg inline-block">
+              <p className="text-sm text-bob-primary">
                 Conectado como: <span className="font-semibold">{currentUser.nombre}</span>
                 <br />
                 <Link 
-                  to={
-                    currentUser.tipo_usuario?.includes('ADMIN') 
-                      ? '/admin/dashboard' 
-                      : currentUser.tipo_usuario === 'xander' 
-                        ? '/xander/dashboard' 
-                        : '/cliente/dashboard'
-                  }
-                  className="text-blue-600 hover:text-blue-800 underline"
+                  to={currentUser.tipo_usuario?.includes('ADMIN') ? '/admin/dashboard' : '/cliente/dashboard'}
+                  className="text-bob-primary hover:text-bob-primary-dark underline"
                 >
                   Ir al Dashboard
                 </Link>
@@ -107,8 +73,8 @@ const Home = () => {
             const Icon = feature.icon;
             return (
               <div key={index} className="text-center p-6 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Icon className="w-6 h-6 text-blue-700" />
+                <div className="mx-auto w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
+                  <Icon className="w-6 h-6 text-bob-primary" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {feature.title}

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
+import Login from './pages/Login';
 
 // Cliente
 import DashboardCliente from './pages/cliente/DashboardCliente';
@@ -26,11 +27,8 @@ import DashboardXander from './pages/xander/DashboardXander';
 import GestionGarantiasXander from './pages/xander/GestionGarantiasXander';
 import GestionReembolsosXander from './pages/xander/GestionReembolsosXander';
 import GestionClientesXander from './pages/xander/GestionClientesXander';
-import GarantiasClienteXander from './pages/xander/GarantiasClienteXander';
 import ListaGarantiasCliente from './pages/xander/ListaGarantiasCliente';
 import SubastasXander from './pages/xander/SubastasXander';
-
-// ...resto del código...
 
 function App() {
   return (
@@ -39,6 +37,8 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            
             {/* Cliente */}
             <Route path="/cliente/dashboard" element={<DashboardCliente />} />
             <Route path="/cliente/wallet" element={<WalletCliente />} />
@@ -47,6 +47,7 @@ function App() {
             <Route path="/cliente/solicitar-reembolso" element={<SolicitarReembolso />} />
             <Route path="/cliente/garantias" element={<GarantiasCliente />} />
             <Route path="/cliente/registrar-garantia" element={<RegistrarGarantia />} />
+            
             {/* Admin */}
             <Route path="/admin/dashboard" element={<DashboardAdmin />} />
             <Route path="/admin/pagos" element={<ValidacionPagos />} />
