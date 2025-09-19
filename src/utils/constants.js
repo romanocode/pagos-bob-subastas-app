@@ -6,7 +6,16 @@
 // Estados de Garantías
 export const GARANTIA_ESTADOS = {
   PENDIENTE_VALIDACION: 'PV',
-  VALIDADO: 'V'
+  VALIDADO: 'V',
+  PAGADO: 'P',
+  INVALIDADO: 'I',
+  REVOCADO: 'R'
+};
+
+// Estados de Subastas
+export const SUBASTA_ESTADOS = {
+  ACTIVA: 'activa',
+  CERRADA: 'cerrada'
 };
 
 // Estados de Reembolsos
@@ -38,13 +47,28 @@ export const API_ROUTES = {
   // Garantías
   GARANTIAS: '/garantias',
   GARANTIA_POR_ID: (id) => `/garantias/${id}`,
+  GARANTIA_CLIENTE: (id) => `/garantias/cliente/${id}`,
   VALIDAR_GARANTIA: (id) => `/garantias/${id}/validate`,
+  PAGAR_GARANTIA: (id) => `/garantias/${id}/paid`,
+  INVALIDAR_GARANTIA: (id) => `/garantias/${id}/invalid`,
+  REVOCAR_GARANTIA: (id) => `/garantias/${id}/revoke`,
   
   // Reembolsos
   REEMBOLSOS: '/reembolsos',
   REEMBOLSO_POR_ID: (id) => `/reembolsos/${id}`,
   APROBAR_REEMBOLSO: (id) => `/reembolsos/${id}/validate`,
-  MARCAR_REEMBOLSADO: (id) => `/reembolsos/${id}/reimburse`
+  REVOCAR_REEMBOLSO: (id) => `/reembolsos/${id}/revoke`,
+  
+  // Facturación
+  FACTURACION: '/facturacion',
+  FACTURACION_POR_ID: (id) => `/facturacion/${id}`,
+  VALIDAR_FACTURACION: (id) => `/facturacion/${id}/validate`,
+  REVOCAR_FACTURACION: (id) => `/facturacion/${id}/revoke`,
+  
+  // Subastas
+  SUBASTAS: '/subastas',
+  SUBASTA_POR_ID: (id) => `/subastas/${id}`,
+  CERRAR_SUBASTA: (id) => `/subastas/${id}/close`
 };
 
 // Mensajes del sistema
@@ -59,7 +83,15 @@ export const MENSAJES = {
   GARANTIA_CREADA: 'Garantía registrada exitosamente',
   GARANTIA_ACTUALIZADA: 'Garantía actualizada exitosamente',
   GARANTIA_VALIDADA: 'Garantía validada exitosamente',
+  GARANTIA_PAGADA: 'Garantía marcada como pagada exitosamente',
+  GARANTIA_INVALIDADA: 'Garantía invalidada exitosamente',
+  GARANTIA_REVOCADA: 'Garantía revocada exitosamente',
   GARANTIA_ELIMINADA: 'Garantía eliminada exitosamente',
+  
+  FACTURACION_CREADA: 'Facturación registrada exitosamente',
+  FACTURACION_ACTUALIZADA: 'Facturación actualizada exitosamente',
+  FACTURACION_VALIDADA: 'Facturación validada exitosamente',
+  FACTURACION_REVOCADA: 'Facturación revocada exitosamente',
   
   REEMBOLSO_CREADO: 'Reembolso registrado exitosamente',
   REEMBOLSO_ACTUALIZADO: 'Reembolso actualizado exitosamente',
@@ -68,6 +100,11 @@ export const MENSAJES = {
   REEMBOLSO_CANCELADO: 'Reembolso cancelado exitosamente',
   REEMBOLSO_PROCESANDO: 'Reembolso en proceso de pago',
   REEMBOLSO_RECHAZADO: 'Reembolso rechazado',
+  
+  SUBASTA_CREADA: 'Subasta creada exitosamente',
+  SUBASTA_ACTUALIZADA: 'Subasta actualizada exitosamente',
+  SUBASTA_CERRADA: 'Subasta cerrada exitosamente',
+  SUBASTA_ELIMINADA: 'Subasta eliminada exitosamente',
   
   // Errores
   ERROR_CAMPOS_REQUERIDOS: 'Por favor complete todos los campos requeridos',

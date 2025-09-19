@@ -1,1012 +1,358 @@
-# Documentación API - Sistema de Pagos Bob Subastas
+# Documentación de la API de Pagos Bob Subastas
 
-Esta documentación describe los endpoints disponibles en la API del sistema de pagos de Bob Subastas para su integración con el frontend y otros sistemas.
+Esta documentación describe la estructura de los modelos y los endpoints disponibles en la API de Pagos Bob Subastas.
 
-## Índice
+## Modelos
 
-- [Información General](#información-general)
-- [Clientes](#clientes)
-- [Garantías](#garantías)
-- [Reembolsos](#reembolsos)
-- [Códigos de Estado](#códigos-de-estado)
+### Subastas
 
-## Información General
-
-- **URL Base**: `http://localhost:3000/api`
-- **Formato de Respuesta**: Todas las respuestas son en formato JSON
-- **Content-Type**: `application/json`
-
-## Clientes
-
-### Obtener todos los clientes
-
-- **URL**: `/clientes`
-- **Método**: `GET`
-- **Parámetros**: Ninguno
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "idCliente": 1,
-      "correo": "cliente1@ejemplo.com",
-      "nombreCompleto": "Juan Pérez",
-      "tipDocumento": "DNI",
-      "numDocumento": "12345678",
-      "numCelular": "987654321",
-      "saldoTotalDolar": 1000.50,
-      "dtFacRuc": "20123456789",
-      "dtFacRazonSocial": "Empresa Ejemplo S.A.C.",
-      "estado": true,
-      "createdAt": "2023-05-15T10:30:00.000Z",
-      "updatedAt": "2023-05-15T10:30:00.000Z"
-    },
-    {
-      "idCliente": 2,
-      "correo": "cliente2@ejemplo.com",
-      "nombreCompleto": "María García",
-      "tipDocumento": "DNI",
-      "numDocumento": "87654321",
-      "numCelular": "912345678",
-      "saldoTotalDolar": 2500.75,
-      "dtFacRuc": "20987654321",
-      "dtFacRazonSocial": "Otra Empresa S.A.C.",
-      "estado": true,
-      "createdAt": "2023-05-16T14:20:00.000Z",
-      "updatedAt": "2023-05-16T14:20:00.000Z"
-    }
-  ],
-  "message": "Clientes obtenidos correctamente"
+```prisma
+model Subastas{
+  idSubasta     Int      @id @default(autoincrement())
+  titulo        String
+  imgSubasta    String?
+  placaVehiculo String
+  empresa       String
+  fecha         DateTime
+  moneda        String
+  monto         Decimal
+  descripcion   String?
+  estado        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime?
+  canceledAt    DateTime?
 }
 ```
 
-#### Respuesta de Error
+### Clientes
 
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al obtener clientes",
-  "error": "Error de conexión a la base de datos"
+```prisma
+model Clientes {
+  idCliente         Int      @id @default(autoincrement())
+  correo            String
+  nombreCompleto    String
+  tipDocumento     String
+  numDocumento     String
+  numCelular       String
+  saldoTotalDolar  Decimal    @default(0)
+  dtFacRuc         String
+  dtFacRazonSocial String
+  activo           Boolean    @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime?
+  canceledAt       DateTime?
 }
 ```
 
-### Obtener cliente por ID
+### Garantias
 
-- **URL**: `/clientes/:id`
-- **Método**: `GET`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del cliente
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "idCliente": 1,
-    "correo": "cliente1@ejemplo.com",
-    "nombreCompleto": "Juan Pérez",
-    "tipDocumento": "DNI",
-    "numDocumento": "12345678",
-    "numCelular": "987654321",
-    "saldoTotalDolar": 1000.50,
-    "dtFacRuc": "20123456789",
-    "dtFacRazonSocial": "Empresa Ejemplo S.A.C.",
-    "estado": true,
-    "createdAt": "2023-05-15T10:30:00.000Z",
-    "updatedAt": "2023-05-15T10:30:00.000Z"
-  },
-  "message": "Cliente obtenido correctamente"
+```prisma
+model Garantias {
+  idGarantia        Int      @id @default(autoincrement())
+  idSubasta         Int
+  idCliente         Int
+  concepto          String
+  fechaSubasta      DateTime
+  fechaExpiracion   DateTime
+  tipo              String
+  moneda            String
+  montoGarantia     Decimal
+  banco             String
+  numCuentaDeposito String
+  docAdjunto        String
+  comentarios       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime?
+  paidAt            DateTime?
+  validatedAt       DateTime?
+  invalidatedAt     DateTime?
+  revokedAt         DateTime?
 }
 ```
 
-#### Respuestas de Error
+### Reembolsos
 
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del cliente debe ser un número válido"
+```prisma
+model Reembolsos{
+  idReembolso       Int      @id @default(autoincrement())
+  idCliente         Int
+  monto             Decimal
+  banco             String
+  numCuentaDeposito String
+  docAdjunto        String?
+  comentarios       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime?
+  validatedAt       DateTime?
+  revokedAt         DateTime?
 }
 ```
 
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
+### Facturacion
 
-```json
-{
-  "success": false,
-  "message": "Cliente con ID 999 no encontrado"
+```prisma
+model Facturacion{
+  idFacturacion     Int      @id @default(autoincrement())
+  idCliente         Int
+  idSubasta         Int
+  monto             Decimal
+  banco             String
+  numCuentaDeposito String
+  docAdjunto        String?
+  concepto          String
+  comentarios       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime?
+  validatedAt       DateTime?
+  revokedAt         DateTime?
 }
 ```
 
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
+## Endpoints
+
+### Clientes
+
+| Método | URL | Descripción |
+|--------|-----|-------------|
+| GET | `/api/clientes` | Obtiene todos los clientes |
+| GET | `/api/clientes/:id` | Obtiene un cliente por su ID |
+| POST | `/api/clientes` | Crea un nuevo cliente |
+| PUT | `/api/clientes/:id` | Actualiza un cliente existente |
+| DELETE | `/api/clientes/:id` | Elimina un cliente |
+| PATCH | `/api/clientes/:id` | Cambia el estado de un cliente |
+
+#### Estructura de datos para crear/actualizar un cliente
 
 ```json
 {
-  "success": false,
-  "message": "Error al obtener cliente",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Crear nuevo cliente
-
-- **URL**: `/clientes`
-- **Método**: `POST`
-- **Headers**:
-  - Content-Type: application/json
-- **Body**:
-
-```json
-{
-  "correo": "nuevo@ejemplo.com",
-  "nombreCompleto": "Nuevo Cliente",
+  "correo": "cliente@ejemplo.com",
+  "nombreCompleto": "Nombre Completo",
   "tipDocumento": "DNI",
   "numDocumento": "12345678",
   "numCelular": "987654321",
   "saldoTotalDolar": 0,
   "dtFacRuc": "20123456789",
-  "dtFacRazonSocial": "Empresa Nueva S.A.C.",
-  "estado": true
+  "dtFacRazonSocial": "Empresa S.A.C",
+  "activo": true
 }
 ```
 
-**Campos obligatorios**:
-- `correo`: String (formato email válido)
-- `nombreCompleto`: String
-- `tipDocumento`: String
-- `numDocumento`: String
-- `numCelular`: String
-- `dtFacRuc`: String
-- `dtFacRazonSocial`: String
+### Subastas
 
-**Campos opcionales**:
-- `saldoTotalDolar`: Number (default: 0)
-- `estado`: Boolean (default: true)
+| Método | URL | Descripción |
+|--------|-----|-------------|
+| GET | `/api/subastas` | Obtiene todas las subastas |
+| GET | `/api/subastas/:id` | Obtiene una subasta por su ID |
+| POST | `/api/subastas` | Crea una nueva subasta |
+| PUT | `/api/subastas/:id` | Actualiza una subasta existente |
+| DELETE | `/api/subastas/:id` | Elimina una subasta |
 
-#### Respuesta Exitosa
+#### Estructura de datos para crear/actualizar una subasta
 
-- **Código**: 201 Created
-- **Ejemplo de respuesta**:
+```json
+{
+  "titulo": "Subasta de vehículo",
+  "imgSubasta": "url_de_la_imagen.jpg",
+  "placaVehiculo": "ABC-123",
+  "empresa": "Empresa Subastadora",
+  "fecha": "2023-06-15T14:00:00Z",
+  "moneda": "USD",
+  "monto": 5000,
+  "descripcion": "Descripción detallada de la subasta",
+  "estado": "activa"
+}
+```
+
+### Garantías
+
+| Método | URL | Descripción |
+|--------|-----|-------------|
+| GET | `/api/garantias` | Obtiene todas las garantías |
+| GET | `/api/garantias/:id` | Obtiene una garantía por su ID |
+| POST | `/api/garantias` | Crea una nueva garantía |
+| PUT | `/api/garantias/:id` | Actualiza una garantía existente |
+| PATCH | `/api/garantias/:id/validate` | Valida una garantía |
+| PATCH | `/api/garantias/:id/paid` | Marca una garantía como pagada |
+| PATCH | `/api/garantias/:id/invalid` | Invalida una garantía |
+| PATCH | `/api/garantias/:id/revoke` | Revoca una garantía |
+
+#### Estructura de datos para crear/actualizar una garantía
+
+```json
+{
+  "idSubasta": 1,
+  "idCliente": 1,
+  "concepto": "Garantía para subasta",
+  "fechaSubasta": "2023-06-15T14:00:00Z",
+  "fechaExpiracion": "2023-07-15T14:00:00Z",
+  "tipo": "deposito",
+  "moneda": "USD",
+  "montoGarantia": 500,
+  "banco": "Banco XYZ",
+  "numCuentaDeposito": "123-456-789",
+  "docAdjunto": "url_del_documento.pdf",
+  "comentarios": "Comentarios adicionales"
+}
+```
+
+### Reembolsos
+
+| Método | URL | Descripción |
+|--------|-----|-------------|
+| GET | `/api/reembolsos` | Obtiene todos los reembolsos |
+| GET | `/api/reembolsos/:id` | Obtiene un reembolso por su ID |
+| POST | `/api/reembolsos` | Crea un nuevo reembolso |
+| PUT | `/api/reembolsos/:id` | Actualiza un reembolso existente |
+| PUT | `/api/reembolsos/:id/validate` | Aprueba un reembolso |
+| PUT | `/api/reembolsos/:id/revoke` | Revoca un reembolso |
+
+#### Estructura de datos para crear/actualizar un reembolso
+
+```json
+{
+  "idCliente": 1,
+  "monto": 300,
+  "banco": "Banco ABC",
+  "numCuentaDeposito": "987-654-321",
+  "docAdjunto": "url_del_documento.pdf",
+  "comentarios": "Comentarios sobre el reembolso"
+}
+```
+
+### Facturación
+
+| Método | URL | Descripción |
+|--------|-----|-------------|
+| GET | `/api/facturacion` | Obtiene todas las facturaciones |
+| GET | `/api/facturacion/:id` | Obtiene una facturación por su ID |
+| POST | `/api/facturacion` | Crea una nueva facturación |
+| PUT | `/api/facturacion/:id` | Actualiza una facturación existente |
+| PATCH | `/api/facturacion/:id/validate` | Valida una facturación |
+| PATCH | `/api/facturacion/:id/revoke` | Revoca una facturación |
+
+#### Estructura de datos para crear/actualizar una facturación
+
+```json
+{
+  "idCliente": 1,
+  "idSubasta": 1,
+  "monto": 1000,
+  "banco": "Banco DEF",
+  "numCuentaDeposito": "456-789-123",
+  "docAdjunto": "url_del_documento.pdf",
+  "concepto": "Pago de subasta",
+  "comentarios": "Comentarios sobre la facturación"
+}
+```
+
+## Respuestas de la API
+
+Todas las respuestas de la API siguen la siguiente estructura:
+
+### Respuesta exitosa
 
 ```json
 {
   "success": true,
-  "data": {
-    "idCliente": 3,
-    "correo": "nuevo@ejemplo.com",
-    "nombreCompleto": "Nuevo Cliente",
-    "tipDocumento": "DNI",
-    "numDocumento": "12345678",
-    "numCelular": "987654321",
-    "saldoTotalDolar": 0,
-    "dtFacRuc": "20123456789",
-    "dtFacRazonSocial": "Empresa Nueva S.A.C.",
-    "estado": true,
-    "createdAt": "2023-05-20T08:15:00.000Z",
-    "updatedAt": null
-  },
-  "message": "Cliente creado correctamente"
+  "data": {}, // Datos solicitados o creados/actualizados
+  "message": "Mensaje descriptivo del resultado"
 }
 ```
 
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
+### Respuesta de error
 
 ```json
 {
   "success": false,
-  "message": "Todos los campos obligatorios deben ser proporcionados"
+  "message": "Mensaje descriptivo del error",
+  "error": "Detalles técnicos del error (opcional)"
 }
 ```
 
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
+### Ejemplos de respuestas por tipo de operación
 
-```json
-{
-  "success": false,
-  "message": "El formato del correo no es válido"
-}
-```
-
-- **Código**: 409 Conflict
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Ya existe un cliente con ese correo"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al crear cliente",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Actualizar cliente
-
-- **URL**: `/clientes/:id`
-- **Método**: `PUT`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del cliente
-- **Headers**:
-  - Content-Type: application/json
-- **Body**:
-
-```json
-{
-  "correo": "actualizado@ejemplo.com",
-  "nombreCompleto": "Cliente Actualizado",
-  "tipDocumento": "DNI",
-  "numDocumento": "87654321",
-  "numCelular": "912345678",
-  "saldoTotalDolar": 1500.25,
-  "dtFacRuc": "20987654321",
-  "dtFacRazonSocial": "Empresa Actualizada S.A.C.",
-  "estado": true
-}
-```
-
-**Nota**: Todos los campos son opcionales. Solo se actualizarán los campos proporcionados.
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "idCliente": 1,
-    "correo": "actualizado@ejemplo.com",
-    "nombreCompleto": "Cliente Actualizado",
-    "tipDocumento": "DNI",
-    "numDocumento": "87654321",
-    "numCelular": "912345678",
-    "saldoTotalDolar": 1500.25,
-    "dtFacRuc": "20987654321",
-    "dtFacRazonSocial": "Empresa Actualizada S.A.C.",
-    "estado": true,
-    "createdAt": "2023-05-15T10:30:00.000Z",
-    "updatedAt": "2023-05-21T11:45:00.000Z"
-  },
-  "message": "Cliente actualizado correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del cliente debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Cliente con ID 999 no encontrado"
-}
-```
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El formato del correo no es válido"
-}
-```
-
-- **Código**: 409 Conflict
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Ya existe otro cliente con ese correo"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al actualizar cliente",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Eliminar cliente
-
-- **URL**: `/clientes/:id`
-- **Método**: `DELETE`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del cliente
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "message": "Cliente eliminado correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del cliente debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Cliente con ID 999 no encontrado"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al eliminar cliente",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-## Garantías
-
-### Obtener todas las garantías
-
-- **URL**: `/garantias`
-- **Método**: `GET`
-- **Parámetros**: Ninguno
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
+#### GET (Obtener todos los recursos)
 
 ```json
 {
   "success": true,
   "data": [
     {
-      "idGarantia": 1,
       "idCliente": 1,
-      "tipo": "vehicular",
-      "placaVehiculo": "ABC-123",
-      "empresaVehiculo": "Toyota",
-      "fechaSubasta": "2023-06-15T00:00:00.000Z",
-      "moneda": "USD",
-      "montoGarantia": 5000,
-      "banco": "Banco de Crédito",
-      "numCuentaDeposito": "123-456-789",
-      "docAdjunto": "garantia1.pdf",
-      "comentarios": "Garantía para subasta de junio",
-      "estado": "PV",
-      "createdAt": "2023-05-10T14:30:00.000Z",
+      "correo": "cliente@ejemplo.com",
+      "nombreCompleto": "Nombre Completo",
+      "tipDocumento": "DNI",
+      "numDocumento": "12345678",
+      "numCelular": "987654321",
+      "saldoTotalDolar": 0,
+      "dtFacRuc": "20123456789",
+      "dtFacRazonSocial": "Empresa S.A.C",
+      "activo": true,
+      "createdAt": "2023-06-15T14:00:00Z",
       "updatedAt": null,
-      "validatedAt": null
+      "canceledAt": null
     },
-    {
-      "idGarantia": 2,
-      "idCliente": 2,
-      "tipo": "efectivo",
-      "placaVehiculo": null,
-      "empresaVehiculo": null,
-      "fechaSubasta": "2023-06-20T00:00:00.000Z",
-      "moneda": "USD",
-      "montoGarantia": 3000,
-      "banco": "BBVA",
-      "numCuentaDeposito": "987-654-321",
-      "docAdjunto": "garantia2.pdf",
-      "comentarios": "Garantía en efectivo",
-      "estado": "V",
-      "createdAt": "2023-05-12T09:45:00.000Z",
-      "updatedAt": "2023-05-13T10:15:00.000Z",
-      "validatedAt": "2023-05-13T10:15:00.000Z"
-    }
+    // Más elementos...
   ],
-  "message": "Garantías obtenidas correctamente"
+  "message": "Clientes obtenidos correctamente"
 }
 ```
 
-#### Respuesta de Error
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
+#### GET (Obtener un recurso por ID)
 
 ```json
 {
-  "success": false,
-  "message": "Error al obtener garantías",
-  "error": "Error de conexión a la base de datos"
+  "success": true,
+  "data": {
+    "idSubasta": 1,
+    "titulo": "Subasta de vehículo",
+    "imgSubasta": "url_de_la_imagen.jpg",
+    "placaVehiculo": "ABC-123",
+    "empresa": "Empresa Subastadora",
+    "fecha": "2023-06-15T14:00:00Z",
+    "moneda": "USD",
+    "monto": 5000,
+    "descripcion": "Descripción detallada de la subasta",
+    "estado": "activa",
+    "createdAt": "2023-06-01T10:00:00Z",
+    "updatedAt": null,
+    "canceledAt": null
+  },
+  "message": "Subasta obtenida correctamente"
 }
 ```
 
-### Obtener garantía por ID
-
-- **URL**: `/garantias/:id`
-- **Método**: `GET`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico de la garantía
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
+#### POST (Crear un recurso)
 
 ```json
 {
   "success": true,
   "data": {
     "idGarantia": 1,
+    "idSubasta": 1,
     "idCliente": 1,
-    "tipo": "vehicular",
-    "placaVehiculo": "ABC-123",
-    "empresaVehiculo": "Toyota",
-    "fechaSubasta": "2023-06-15T00:00:00.000Z",
+    "concepto": "Garantía para subasta",
+    "fechaSubasta": "2023-06-15T14:00:00Z",
+    "fechaExpiracion": "2023-07-15T14:00:00Z",
+    "tipo": "deposito",
     "moneda": "USD",
-    "montoGarantia": 5000,
-    "banco": "Banco de Crédito",
+    "montoGarantia": 500,
+    "banco": "Banco XYZ",
     "numCuentaDeposito": "123-456-789",
-    "docAdjunto": "garantia1.pdf",
-    "comentarios": "Garantía para subasta de junio",
-    "estado": "PV",
-    "createdAt": "2023-05-10T14:30:00.000Z",
+    "docAdjunto": "url_del_documento.pdf",
+    "comentarios": "Comentarios adicionales",
+    "createdAt": "2023-06-10T09:30:00Z",
     "updatedAt": null,
-    "validatedAt": null
-  },
-  "message": "Garantía obtenida correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID de la garantía debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Garantía con ID 999 no encontrada"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al obtener garantía",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Crear nueva garantía
-
-- **URL**: `/garantias`
-- **Método**: `POST`
-- **Headers**:
-  - Content-Type: application/json
-- **Body**:
-
-```json
-{
-  "idCliente": 1,
-  "tipo": "vehicular",
-  "placaVehiculo": "DEF-456",
-  "empresaVehiculo": "Honda",
-  "fechaSubasta": "2023-07-10",
-  "moneda": "USD",
-  "montoGarantia": 4500,
-  "banco": "Interbank",
-  "numCuentaDeposito": "456-789-123",
-  "docAdjunto": "nueva_garantia.pdf",
-  "comentarios": "Nueva garantía vehicular"
-}
-```
-
-**Campos obligatorios**:
-- `idCliente`: Number
-- `tipo`: String
-- `fechaSubasta`: Date
-- `moneda`: String
-- `montoGarantia`: Number
-- `banco`: String
-- `numCuentaDeposito`: String
-- `docAdjunto`: String
-
-**Campos opcionales**:
-- `placaVehiculo`: String (obligatorio si tipo es "vehicular")
-- `empresaVehiculo`: String (obligatorio si tipo es "vehicular")
-- `comentarios`: String
-- `estado`: String (default: "PV" - Pendiente de Validación)
-
-#### Respuesta Exitosa
-
-- **Código**: 201 Created
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "idGarantia": 3,
-    "idCliente": 1,
-    "tipo": "vehicular",
-    "placaVehiculo": "DEF-456",
-    "empresaVehiculo": "Honda",
-    "fechaSubasta": "2023-07-10T00:00:00.000Z",
-    "moneda": "USD",
-    "montoGarantia": 4500,
-    "banco": "Interbank",
-    "numCuentaDeposito": "456-789-123",
-    "docAdjunto": "nueva_garantia.pdf",
-    "comentarios": "Nueva garantía vehicular",
-    "estado": "PV",
-    "createdAt": "2023-05-25T16:20:00.000Z",
-    "updatedAt": null,
-    "validatedAt": null
+    "paidAt": null,
+    "validatedAt": null,
+    "invalidatedAt": null,
+    "revokedAt": null
   },
   "message": "Garantía creada correctamente"
 }
 ```
 
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Todos los campos obligatorios deben ser proporcionados"
-}
-```
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del cliente debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Cliente con ID 999 no encontrado"
-}
-```
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Para garantías de tipo vehicular, los campos placaVehiculo y empresaVehiculo son obligatorios"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al crear garantía",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Actualizar garantía
-
-- **URL**: `/garantias/:id`
-- **Método**: `PUT`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico de la garantía
-- **Headers**:
-  - Content-Type: application/json
-- **Body**:
-
-```json
-{
-  "idCliente": 2,
-  "tipo": "vehicular",
-  "placaVehiculo": "GHI-789",
-  "empresaVehiculo": "Nissan",
-  "fechaSubasta": "2023-08-05",
-  "moneda": "USD",
-  "montoGarantia": 6000,
-  "banco": "Scotiabank",
-  "numCuentaDeposito": "789-123-456",
-  "docAdjunto": "garantia_actualizada.pdf",
-  "comentarios": "Garantía actualizada",
-  "estado": "PV"
-}
-```
-
-**Nota**: Todos los campos son opcionales. Solo se actualizarán los campos proporcionados.
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "idGarantia": 1,
-    "idCliente": 2,
-    "tipo": "vehicular",
-    "placaVehiculo": "GHI-789",
-    "empresaVehiculo": "Nissan",
-    "fechaSubasta": "2023-08-05T00:00:00.000Z",
-    "moneda": "USD",
-    "montoGarantia": 6000,
-    "banco": "Scotiabank",
-    "numCuentaDeposito": "789-123-456",
-    "docAdjunto": "garantia_actualizada.pdf",
-    "comentarios": "Garantía actualizada",
-    "estado": "PV",
-    "createdAt": "2023-05-10T14:30:00.000Z",
-    "updatedAt": "2023-05-26T11:10:00.000Z",
-    "validatedAt": null
-  },
-  "message": "Garantía actualizada correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID de la garantía debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Garantía con ID 999 no encontrada"
-}
-```
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del cliente debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Cliente con ID 999 no encontrado"
-}
-```
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Para garantías de tipo vehicular, los campos placaVehiculo y empresaVehiculo son obligatorios"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al actualizar garantía",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Validar garantía
-
-- **URL**: `/garantias/:id/validate`
-- **Método**: `PUT`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico de la garantía
-- **Headers**:
-  - Content-Type: application/json
-- **Body**: No requiere
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "idGarantia": 1,
-    "idCliente": 1,
-    "tipo": "vehicular",
-    "placaVehiculo": "ABC-123",
-    "empresaVehiculo": "Toyota",
-    "fechaSubasta": "2023-06-15T00:00:00.000Z",
-    "moneda": "USD",
-    "montoGarantia": 5000,
-    "banco": "Banco de Crédito",
-    "numCuentaDeposito": "123-456-789",
-    "docAdjunto": "garantia1.pdf",
-    "comentarios": "Garantía para subasta de junio",
-    "estado": "V",
-    "createdAt": "2023-05-10T14:30:00.000Z",
-    "updatedAt": "2023-05-27T09:30:00.000Z",
-    "validatedAt": "2023-05-27T09:30:00.000Z"
-  },
-  "message": "Garantía validada correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID de la garantía debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Garantía con ID 999 no encontrada"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al validar garantía",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Eliminar garantía
-
-- **URL**: `/garantias/:id`
-- **Método**: `DELETE`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico de la garantía
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "message": "Garantía eliminada correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID de la garantía debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Garantía con ID 999 no encontrada"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al eliminar garantía",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-## Reembolsos
-
-### Obtener todos los reembolsos
-
-- **URL**: `/reembolsos`
-- **Método**: `GET`
-- **Parámetros**: Ninguno
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "idReembolso": 1,
-      "idCliente": 1,
-      "montoReembolso": 500.75,
-      "banco": "Banco de Crédito",
-      "numCuentaDeposito": "123-456-789",
-      "docAdjunto": "reembolso1.pdf",
-      "comentarios": "Reembolso por cancelación",
-      "estado": "P",
-      "createdAt": "2023-05-18T10:20:00.000Z",
-      "updatedAt": null,
-      "validatedAt": null,
-      "reimbursedAt": null
-    },
-    {
-      "idReembolso": 2,
-      "idCliente": 2,
-      "montoReembolso": 1200.50,
-      "banco": "BBVA",
-      "numCuentaDeposito": "987-654-321",
-      "docAdjunto": "reembolso2.pdf",
-      "comentarios": "Reembolso por devolución",
-      "estado": "A",
-      "createdAt": "2023-05-19T14:45:00.000Z",
-      "updatedAt": "2023-05-20T09:30:00.000Z",
-      "validatedAt": "2023-05-20T09:30:00.000Z",
-      "reimbursedAt": null
-    }
-  ],
-  "message": "Reembolsos obtenidos correctamente"
-}
-```
-
-#### Respuesta de Error
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al obtener reembolsos",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Obtener reembolso por ID
-
-- **URL**: `/reembolsos/:id`
-- **Método**: `GET`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del reembolso
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
+#### PUT (Actualizar un recurso)
 
 ```json
 {
@@ -1014,469 +360,100 @@ Esta documentación describe los endpoints disponibles en la API del sistema de 
   "data": {
     "idReembolso": 1,
     "idCliente": 1,
-    "montoReembolso": 500.75,
-    "banco": "Banco de Crédito",
-    "numCuentaDeposito": "123-456-789",
-    "docAdjunto": "reembolso1.pdf",
-    "comentarios": "Reembolso por cancelación",
-    "estado": "P",
-    "createdAt": "2023-05-18T10:20:00.000Z",
-    "updatedAt": null,
+    "monto": 350,
+    "banco": "Banco ABC Actualizado",
+    "numCuentaDeposito": "987-654-321",
+    "docAdjunto": "url_del_documento_actualizado.pdf",
+    "comentarios": "Comentarios actualizados sobre el reembolso",
+    "createdAt": "2023-06-05T11:20:00Z",
+    "updatedAt": "2023-06-12T16:45:00Z",
     "validatedAt": null,
-    "reimbursedAt": null
-  },
-  "message": "Reembolso obtenido correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del reembolso debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Reembolso con ID 999 no encontrado"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al obtener reembolso",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Crear nuevo reembolso
-
-- **URL**: `/reembolsos`
-- **Método**: `POST`
-- **Headers**:
-  - Content-Type: application/json
-- **Body**:
-
-```json
-{
-  "idCliente": 1,
-  "montoReembolso": 750.25,
-  "banco": "Interbank",
-  "numCuentaDeposito": "456-789-123",
-  "docAdjunto": "nuevo_reembolso.pdf",
-  "comentarios": "Nuevo reembolso por cancelación de subasta"
-}
-```
-
-**Campos obligatorios**:
-- `idCliente`: Number
-- `montoReembolso`: Number
-- `banco`: String
-- `numCuentaDeposito`: String
-
-**Campos opcionales**:
-- `docAdjunto`: String
-- `comentarios`: String
-- `estado`: String (default: "P" - Pendiente)
-
-#### Respuesta Exitosa
-
-- **Código**: 201 Created
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "idReembolso": 3,
-    "idCliente": 1,
-    "montoReembolso": 750.25,
-    "banco": "Interbank",
-    "numCuentaDeposito": "456-789-123",
-    "docAdjunto": "nuevo_reembolso.pdf",
-    "comentarios": "Nuevo reembolso por cancelación de subasta",
-    "estado": "P",
-    "createdAt": "2023-05-28T15:40:00.000Z",
-    "updatedAt": null,
-    "validatedAt": null,
-    "reimbursedAt": null
-  },
-  "message": "Reembolso creado correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Los campos idCliente, montoReembolso, banco y numCuentaDeposito son obligatorios"
-}
-```
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del cliente debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Cliente con ID 999 no encontrado"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al crear reembolso",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Actualizar reembolso
-
-- **URL**: `/reembolsos/:id`
-- **Método**: `PUT`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del reembolso
-- **Headers**:
-  - Content-Type: application/json
-- **Body**:
-
-```json
-{
-  "idCliente": 2,
-  "montoReembolso": 800,
-  "banco": "Scotiabank",
-  "numCuentaDeposito": "789-123-456",
-  "docAdjunto": "reembolso_actualizado.pdf",
-  "comentarios": "Reembolso actualizado",
-  "estado": "P"
-}
-```
-
-**Nota**: Todos los campos son opcionales. Solo se actualizarán los campos proporcionados.
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "idReembolso": 1,
-    "idCliente": 2,
-    "montoReembolso": 800,
-    "banco": "Scotiabank",
-    "numCuentaDeposito": "789-123-456",
-    "docAdjunto": "reembolso_actualizado.pdf",
-    "comentarios": "Reembolso actualizado",
-    "estado": "P",
-    "createdAt": "2023-05-18T10:20:00.000Z",
-    "updatedAt": "2023-05-29T11:25:00.000Z",
-    "validatedAt": null,
-    "reimbursedAt": null
+    "revokedAt": null
   },
   "message": "Reembolso actualizado correctamente"
 }
 ```
 
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del reembolso debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Reembolso con ID 999 no encontrado"
-}
-```
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del cliente debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Cliente con ID 999 no encontrado"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al actualizar reembolso",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Aprobar reembolso
-
-- **URL**: `/reembolsos/:id/validate`
-- **Método**: `PUT`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del reembolso
-- **Headers**:
-  - Content-Type: application/json
-- **Body**: No requiere
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
+#### PATCH (Operaciones específicas)
 
 ```json
 {
   "success": true,
   "data": {
-    "idReembolso": 1,
+    "idFacturacion": 1,
     "idCliente": 1,
-    "montoReembolso": 500.75,
-    "banco": "Banco de Crédito",
-    "numCuentaDeposito": "123-456-789",
-    "docAdjunto": "reembolso1.pdf",
-    "comentarios": "Reembolso por cancelación",
-    "estado": "A",
-    "createdAt": "2023-05-18T10:20:00.000Z",
-    "updatedAt": "2023-05-30T09:15:00.000Z",
-    "validatedAt": "2023-05-30T09:15:00.000Z",
-    "reimbursedAt": null
+    "idSubasta": 1,
+    "monto": 1000,
+    "banco": "Banco DEF",
+    "numCuentaDeposito": "456-789-123",
+    "docAdjunto": "url_del_documento.pdf",
+    "concepto": "Pago de subasta",
+    "comentarios": "Comentarios sobre la facturación",
+    "createdAt": "2023-06-20T10:15:00Z",
+    "updatedAt": "2023-06-22T14:30:00Z",
+    "validatedAt": "2023-06-22T14:30:00Z",
+    "revokedAt": null
   },
-  "message": "Reembolso aprobado correctamente"
+  "message": "Facturación validada correctamente"
 }
 ```
 
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del reembolso debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Reembolso con ID 999 no encontrado"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al aprobar reembolso",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-### Marcar reembolso como reembolsado
-
-- **URL**: `/reembolsos/:id/reimburse`
-- **Método**: `PUT`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del reembolso
-- **Headers**:
-  - Content-Type: application/json
-- **Body**: No requiere
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
+#### DELETE (Eliminar un recurso)
 
 ```json
 {
   "success": true,
   "data": {
-    "idReembolso": 2,
-    "idCliente": 2,
-    "montoReembolso": 1200.50,
-    "banco": "BBVA",
-    "numCuentaDeposito": "987-654-321",
-    "docAdjunto": "reembolso2.pdf",
-    "comentarios": "Reembolso por devolución",
-    "estado": "R",
-    "createdAt": "2023-05-19T14:45:00.000Z",
-    "updatedAt": "2023-05-31T10:20:00.000Z",
-    "validatedAt": "2023-05-20T09:30:00.000Z",
-    "reimbursedAt": "2023-05-31T10:20:00.000Z"
+    "idCliente": 1,
+    "correo": "cliente@ejemplo.com",
+    "nombreCompleto": "Nombre Completo",
+    "tipDocumento": "DNI",
+    "numDocumento": "12345678",
+    "numCelular": "987654321",
+    "saldoTotalDolar": 0,
+    "dtFacRuc": "20123456789",
+    "dtFacRazonSocial": "Empresa S.A.C",
+    "activo": false,
+    "createdAt": "2023-06-15T14:00:00Z",
+    "updatedAt": "2023-06-25T09:10:00Z",
+    "canceledAt": "2023-06-25T09:10:00Z"
   },
-  "message": "Reembolso marcado como reembolsado correctamente"
+  "message": "Cliente eliminado correctamente"
 }
 ```
 
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
+#### Respuesta de error (Recurso no encontrado)
 
 ```json
 {
   "success": false,
-  "message": "El ID del reembolso debe ser un número válido"
+  "message": "Subasta con ID 999 no encontrada"
 }
 ```
 
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
+#### Respuesta de error (Datos inválidos)
 
 ```json
 {
   "success": false,
-  "message": "Reembolso con ID 999 no encontrado"
+  "message": "Los campos idCliente, monto, banco y numCuentaDeposito son obligatorios"
 }
 ```
 
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
+#### Respuesta de error (Error del servidor)
 
 ```json
 {
   "success": false,
-  "message": "Error al marcar reembolso como reembolsado",
-  "error": "Error de conexión a la base de datos"
+  "message": "Error al obtener garantías",
+  "error": "Error de conexión con la base de datos"
 }
 ```
 
-### Eliminar reembolso (Cancelar)
+## Códigos de estado HTTP
 
-- **URL**: `/reembolsos/:id`
-- **Método**: `DELETE`
-- **Parámetros de ruta**:
-  - `id` (obligatorio): ID numérico del reembolso
-- **Headers**:
-  - Content-Type: application/json
-
-#### Respuesta Exitosa
-
-- **Código**: 200 OK
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": true,
-  "message": "Reembolso cancelado correctamente"
-}
-```
-
-#### Respuestas de Error
-
-- **Código**: 400 Bad Request
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "El ID del reembolso debe ser un número válido"
-}
-```
-
-- **Código**: 404 Not Found
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Reembolso con ID 999 no encontrado"
-}
-```
-
-- **Código**: 500 Internal Server Error
-- **Ejemplo de respuesta**:
-
-```json
-{
-  "success": false,
-  "message": "Error al eliminar reembolso",
-  "error": "Error de conexión a la base de datos"
-}
-```
-
-## Códigos de Estado
-
-La API utiliza los siguientes códigos de estado HTTP:
-
-- **200 OK**: La solicitud se ha completado correctamente
-- **201 Created**: El recurso se ha creado correctamente
-- **400 Bad Request**: La solicitud contiene datos inválidos o falta información requerida
-- **404 Not Found**: El recurso solicitado no existe
-- **409 Conflict**: La solicitud no puede ser completada debido a un conflicto con el estado actual del recurso
-- **500 Internal Server Error**: Error interno del servidor
-
-## Estados de los Recursos
-
-### Estados de Garantías
-
-- **PV**: Pendiente de Validación
-- **V**: Validado
-
-### Estados de Reembolsos
-
-- **P**: Pendiente
-- **A**: Aprobado
-- **R**: Reembolsado
-- **cancelado**: Cancelado
+- `200 OK`: La solicitud se ha completado correctamente
+- `201 Created`: El recurso se ha creado correctamente
+- `400 Bad Request`: La solicitud contiene datos inválidos
+- `404 Not Found`: El recurso solicitado no existe
+- `500 Internal Server Error`: Error interno del servidor

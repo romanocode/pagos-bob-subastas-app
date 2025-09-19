@@ -88,6 +88,22 @@ export const garantiaService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Obtiene todas las garantías de un cliente específico
+   * @param {string} clienteId - ID del cliente
+   * @returns {Promise} Promesa con la respuesta
+   */
+  getByCliente: async (clienteId) => {
+    try {
+      debugger
+      const response = await api.get(API_ROUTES.GARANTIA_CLIENTE(clienteId));
+      debugger
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 

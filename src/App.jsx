@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
@@ -27,44 +27,44 @@ import DashboardXander from './pages/xander/DashboardXander';
 import GestionGarantiasXander from './pages/xander/GestionGarantiasXander';
 import GestionReembolsosXander from './pages/xander/GestionReembolsosXander';
 import GestionClientesXander from './pages/xander/GestionClientesXander';
-import GarantiasClienteXander from './pages/xander/GarantiasClienteXander';
 import ListaGarantiasCliente from './pages/xander/ListaGarantiasCliente';
+import SubastasXander from './pages/xander/SubastasXander';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Layout><Home /></Layout>} />
-          
-          {/* Cliente */}
-          <Route path="/cliente/dashboard" element={<Layout><DashboardCliente /></Layout>} />
-          <Route path="/cliente/wallet" element={<Layout><WalletCliente /></Layout>} />
-          <Route path="/cliente/movimientos" element={<Layout><MovimientosCliente /></Layout>} />
-          <Route path="/cliente/reembolsos" element={<Layout><ReembolsosCliente /></Layout>} />
-          <Route path="/cliente/solicitar-reembolso" element={<Layout><SolicitarReembolso /></Layout>} />
-          <Route path="/cliente/garantias" element={<Layout><GarantiasCliente /></Layout>} />
-          <Route path="/cliente/registrar-garantia" element={<Layout><RegistrarGarantia /></Layout>} />
-          
-          {/* Admin */}
-          <Route path="/admin/dashboard" element={<Layout><DashboardAdmin /></Layout>} />
-          <Route path="/admin/pagos" element={<Layout><ValidacionPagos /></Layout>} />
-          <Route path="/admin/subastas" element={<Layout><GestionSubastas /></Layout>} />
-          <Route path="/admin/garantias" element={<Layout><GestionGarantias /></Layout>} />
-          <Route path="/admin/reembolsos" element={<Layout><GestionReembolsos /></Layout>} />
-          <Route path="/admin/usuarios" element={<Layout><UsuariosAdmin /></Layout>} />
-          
-          {/* Xander */}
-          <Route path="/xander/dashboard" element={<Layout><DashboardXander /></Layout>} />
-          <Route path="/xander/clientes" element={<Layout><GestionClientesXander /></Layout>} />
-          <Route path="/xander/garantias" element={<Layout><GestionGarantiasXander /></Layout>} />
-          <Route path="/xander/reembolsos" element={<Layout><GestionReembolsosXander /></Layout>} />
-          <Route path="/xander/clientes/:clienteId/garantias" element={<Layout><ListaGarantiasCliente /></Layout>} />
-          
-          {/* Ruta de fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            
+            {/* Cliente */}
+            <Route path="/cliente/dashboard" element={<DashboardCliente />} />
+            <Route path="/cliente/wallet" element={<WalletCliente />} />
+            <Route path="/cliente/movimientos" element={<MovimientosCliente />} />
+            <Route path="/cliente/reembolsos" element={<ReembolsosCliente />} />
+            <Route path="/cliente/solicitar-reembolso" element={<SolicitarReembolso />} />
+            <Route path="/cliente/garantias" element={<GarantiasCliente />} />
+            <Route path="/cliente/registrar-garantia" element={<RegistrarGarantia />} />
+            
+            {/* Admin */}
+            <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+            <Route path="/admin/pagos" element={<ValidacionPagos />} />
+            <Route path="/admin/subastas" element={<GestionSubastas />} />
+            <Route path="/admin/garantias" element={<GestionGarantias />} />
+            <Route path="/admin/reembolsos" element={<GestionReembolsos />} />
+            <Route path="/admin/usuarios" element={<UsuariosAdmin />} />
+            
+            {/* Xander */}
+            <Route path="/xander/dashboard" element={<DashboardXander />} />
+            <Route path="/xander/subastas" element={<SubastasXander />} />
+            <Route path="/xander/clientes" element={<GestionClientesXander />} />
+            <Route path="/xander/garantias" element={<GestionGarantiasXander />} />
+            <Route path="/xander/reembolsos" element={<GestionReembolsosXander />} />
+            <Route path="/xander/clientes/:clienteId/garantias" element={<ListaGarantiasCliente />} />
+          </Routes>
+        </Layout>
       </Router>
     </AuthProvider>
   );
