@@ -69,9 +69,9 @@ const LoginModal = ({ isOpen, onClose }) => {
       setTimeout(() => {
         // Credenciales hardcodeadas
         if (credentials.username === 'admin' && credentials.password === '1234') {
-          login({ username: credentials.username, role: 'admin' });
+          login({ username: credentials.username, role: 'xander' });
           onClose();
-          navigate('/admin/dashboard');
+          navigate('/xander/dashboard');
         } else if (credentials.username === 'cliente' && credentials.password === '1234') {
           login({ username: credentials.username, role: 'cliente' });
           onClose();
@@ -162,7 +162,7 @@ const LoginModal = ({ isOpen, onClose }) => {
               <Info size={16} className="text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
               <div className="text-xs text-blue-700">
                 <p className="font-semibold mb-1">Credenciales de prueba:</p>
-                <p><span className="font-medium">Admin:</span> usuario: admin, clave: 1234</p>
+                <p><span className="font-medium">Xander:</span> usuario: admin, clave: 1234</p>
                 <p><span className="font-medium">Cliente:</span> usuario: cliente, clave: 1234</p>
               </div>
             </div>
