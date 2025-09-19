@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { walletService } from "../../services/walletService";
+import garantiaService from "../../services/garantiaService";
+import reembolsoService from "../../services/reembolsoService";
+import subastaService from "../../services/subastaService";
 import WalletCard from "../../components/cliente/WalletCard";
 import MovimientosList from "../../components/cliente/MovimientosList";
-import { formatCurrency } from "../../utils/formatters";
-import { TrendingUp, Award, RefreshCw, Clock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { formatCurrency, formatDate } from "../../utils/formatters";
+import { TrendingUp, Award, RefreshCw, Clock, AlertTriangle, Gavel, DollarSign, Shield } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import Card from "../../components/common/Card";
 
 const DashboardCliente = () => {
   const { currentUser } = useAuth();
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [garantias, setGarantias] = useState([]);
+  const [subastas, setSubastas] = useState([]);
+  const [reembolsos, setReembolsos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -25,15 +32,23 @@ const DashboardCliente = () => {
       setLoading(true);
       setError(null);
 
-      const [walletRes, transactionsRes] = await Promise.all([
-        walletService.getWalletByUserId(currentUser.id),
-        walletService.getTransactionsByUserId(currentUser.id),
+      // Realizar múltiples peticiones en paralelo para mejorar el rendimiento
+      const [walletRes, transactionsRes, garantiasRes, subastasRes, reembolsosRes] = await Promise.all([
+        walletService.getWalletByUserId(currentUser?.id || 1),
+        walletService.getTransactionsByUserId(currentUser?.id || 1),
+        garantiaService.getGarantiasByCliente(currentUser?.id || 1),
+        subastaService.getSubastasByCliente(currentUser?.id || 1),
+        reembolsoService.getReembolsosByCliente(currentUser?.id || 1)
       ]);
 
       setWallet(walletRes.data);
       setTransactions(transactionsRes.data);
+      setGarantias(garantiasRes.data || []);
+      setSubastas(subastasRes.data || []);
+      setReembolsos(reembolsosRes.data || []);
     } catch (err) {
-      setError("Error al cargar los datos del usuario");
+      console.error("Error al cargar datos:", err);
+      setError("Error al cargar los datos del usuario. Por favor, intente nuevamente.");
     } finally {
       setLoading(false);
     }
