@@ -28,6 +28,7 @@ import GestionReembolsosXander from './pages/xander/GestionReembolsosXander';
 import GestionClientesXander from './pages/xander/GestionClientesXander';
 import GarantiasClienteXander from './pages/xander/GarantiasClienteXander';
 import ListaGarantiasCliente from './pages/xander/ListaGarantiasCliente';
+import SubastasXander from './pages/xander/SubastasXander';
 
 // ...resto del código...
 
@@ -56,6 +57,7 @@ function App() {
             
             {/* Xander */}
             <Route path="/xander/dashboard" element={<DashboardXander />} />
+            <Route path="/xander/subastas" element={<SubastasXander />} />
             <Route path="/xander/clientes" element={<GestionClientesXander />} />
             <Route path="/xander/garantias" element={<GestionGarantiasXander />} />
             <Route path="/xander/reembolsos" element={<GestionReembolsosXander />} />

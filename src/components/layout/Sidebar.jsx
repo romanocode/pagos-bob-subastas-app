@@ -24,7 +24,7 @@ const Sidebar = ({ userType }) => {
     },
     {
       path: '/cliente/wallet',
-      name: 'Mi Billetera',
+      name: 'Mis Garantías',
       icon: Wallet
     },
     {
@@ -74,14 +74,14 @@ const Sidebar = ({ userType }) => {
       icon: BarChart3
     },
     {
+      path: '/xander/subastas',
+      name: 'Subastas',
+      icon: Gavel
+    },
+    {
       path: '/xander/clientes',
       name: 'Clientes',
       icon: Users
-    },
-    {
-      path: '/xander/garantias',
-      name: 'Garantías',
-      icon: Shield
     },
     {
       path: '/xander/reembolsos',

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Plus, ArrowLeft, Edit, Wallet, RefreshCw, CreditCard } from 'lucide-react';
+import { Plus, ArrowLeft, Edit, Wallet, RefreshCw, CreditCard, FileText } from 'lucide-react';
 import clienteService from '../../services/clienteService';
 import garantiaService from '../../services/garantiaService';
 import { MENSAJES, GARANTIA_ESTADOS } from '../../utils/constants';
@@ -42,13 +42,9 @@ const ListaGarantiasCliente = () => {
       const clienteResponse = await clienteService.getById(clienteId);
       setCliente(clienteResponse.data);
 
-      // Cargar garantías del cliente
-      const garantiasResponse = await garantiaService.getAll();
-      // Filtrar garantías por cliente
-      const garantiasCliente = garantiasResponse.data.filter(
-        garantia => garantia.clienteId === parseInt(clienteId)
-      );
-      setGarantias(garantiasCliente);
+      // Cargar garantías del cliente usando el nuevo endpoint
+      const garantiasResponse = await garantiaService.getByCliente(clienteId);
+      setGarantias(garantiasResponse.data);
     } catch (error) {
       console.error('Error al cargar datos:', error);
       toast.error(MENSAJES.ERROR_SERVIDOR);
@@ -98,6 +94,14 @@ const ListaGarantiasCliente = () => {
       docAdjunto: garantia.docAdjunto || ''
     });
     setShowModal(true);
+  };
+
+  const verDocumento = (docAdjunto) => {
+    // En un entorno real, aquí se abriría el documento en una nueva ventana o modal
+    // Por ahora, solo mostramos un mensaje con el nombre del documento
+    toast.info(`Visualizando documento: ${docAdjunto}`);
+    // Ejemplo de implementación real (comentado):
+    // window.open(`/documentos/${docAdjunto}`, '_blank');
   };
 
   const closeModal = () => {
@@ -236,25 +240,24 @@ const ListaGarantiasCliente = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título Subasta</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Subasta</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Moneda</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Banco</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Referencia</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
                     Cargando garantías...
                   </td>
                 </tr>
               ) : garantias.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
                     No se encontraron garantías para este cliente
                   </td>
                 </tr>
@@ -264,25 +267,22 @@ const ListaGarantiasCliente = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {garantia.id}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {garantia.empresaVehiculo || 'No especificado'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {garantia.fechaSubasta ? new Date(garantia.fechaSubasta).toLocaleDateString() : 'No especificado'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {garantia.moneda}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {formatCurrency(garantia.monto, garantia.moneda)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {garantia.banco}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {garantia.referenciaBancaria}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {garantia.descripcion}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {renderEstadoGarantia(garantia.estado)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(garantia.fechaCreacion).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2">
                       <button
                         onClick={() => openEditModal(garantia)}
                         className="text-indigo-600 hover:text-indigo-900 flex items-center gap-1"
@@ -290,6 +290,15 @@ const ListaGarantiasCliente = () => {
                       >
                         <Edit size={16} />
                       </button>
+                      {garantia.docAdjunto && (
+                        <button
+                          onClick={() => verDocumento(garantia.docAdjunto)}
+                          className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                          title='Ver Documento'
+                        >
+                          <FileText size={16} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

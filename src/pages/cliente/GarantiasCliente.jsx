@@ -20,9 +20,8 @@ const GarantiasCliente = () => {
     setIsLoading(true);
     try {
       // En un entorno real, esto sería:
-      // const data = await garantiaService.getAll();
-      // const garantiasCliente = data.filter(g => g.cliente_id === currentUser.id);
-      // setGarantias(garantiasCliente);
+      // const response = await garantiaService.getByCliente(currentUser.id);
+      // setGarantias(response.data);
       
       // Para demo, usamos datos de prueba
       setTimeout(() => {

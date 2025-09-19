@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft, DollarSign, RefreshCw } from 'lucide-react';
 import clienteService from '../../services/clienteService';
 import garantiaService from '../../services/garantiaService';
-import { MENSAJES, GARANTIA_ESTADOS } from '../../utils/constants';
+import reembolsoService from '../../services/reembolsoService';
+import facturacionService from '../../services/facturacionService';
+import { MENSAJES, GARANTIA_ESTADOS, MONEDAS } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatters';
 
 const GarantiasClienteXander = () => {
@@ -16,12 +18,34 @@ const GarantiasClienteXander = () => {
   const [garantias, setGarantias] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showReembolsoModal, setShowReembolsoModal] = useState(false);
+  const [showPagoModal, setShowPagoModal] = useState(false);
   const [formData, setFormData] = useState({
     monto: '',
     moneda: 'USD',
     banco: '',
     referenciaBancaria: '',
     descripcion: ''
+  });
+  
+  const [reembolsoData, setReembolsoData] = useState({
+    idCliente: '',
+    monto: '',
+    banco: '',
+    numCuentaDeposito: '',
+    docAdjunto: '',
+    comentarios: ''
+  });
+  
+  const [pagoData, setPagoData] = useState({
+    idCliente: '',
+    idSubasta: '',
+    monto: '',
+    banco: '',
+    numCuentaDeposito: '',
+    docAdjunto: '',
+    concepto: '',
+    comentarios: ''
   });
 
   useEffect(() => {
@@ -35,13 +59,9 @@ const GarantiasClienteXander = () => {
       const clienteResponse = await clienteService.getById(clienteId);
       setCliente(clienteResponse.data);
 
-      // Cargar garantías del cliente
-      const garantiasResponse = await garantiaService.getAll();
-      // Filtrar garantías por cliente
-      const garantiasCliente = garantiasResponse.data.filter(
-        garantia => garantia.clienteId === parseInt(clienteId)
-      );
-      setGarantias(garantiasCliente);
+      // Cargar garantías del cliente usando el nuevo endpoint
+      const garantiasResponse = await garantiaService.getByCliente(clienteId);
+      setGarantias(garantiasResponse.data);
     } catch (error) {
       console.error('Error al cargar datos:', error);
       toast.error(MENSAJES.ERROR_SERVIDOR);
@@ -76,6 +96,74 @@ const GarantiasClienteXander = () => {
       console.error('Error al crear garantía:', error);
       toast.error(MENSAJES.ERROR_SERVIDOR);
     }
+  };
+  
+  const handleReembolsoSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const nuevoReembolso = {
+        ...reembolsoData,
+        idCliente: parseInt(clienteId),
+      };
+
+      await reembolsoService.create(nuevoReembolso);
+      toast.success(MENSAJES.REEMBOLSO_CREADO);
+      setShowReembolsoModal(false);
+      setReembolsoData({
+        idCliente: '',
+        monto: '',
+        banco: '',
+        numCuentaDeposito: '',
+        docAdjunto: '',
+        comentarios: ''
+      });
+    } catch (error) {
+      console.error('Error al crear reembolso:', error);
+      toast.error(MENSAJES.ERROR_SERVIDOR);
+    }
+  };
+  
+  const handlePagoSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const nuevoPago = {
+        ...pagoData,
+        idCliente: parseInt(clienteId),
+      };
+
+      await facturacionService.create(nuevoPago);
+      toast.success(MENSAJES.FACTURACION_CREADA);
+      setShowPagoModal(false);
+      setPagoData({
+        idCliente: '',
+        idSubasta: '',
+        monto: '',
+        banco: '',
+        numCuentaDeposito: '',
+        docAdjunto: '',
+        concepto: '',
+        comentarios: ''
+      });
+    } catch (error) {
+      console.error('Error al crear facturación:', error);
+      toast.error(MENSAJES.ERROR_SERVIDOR);
+    }
+  };
+  
+  const handleReembolsoInputChange = (e) => {
+    const { name, value } = e.target;
+    setReembolsoData({
+      ...reembolsoData,
+      [name]: value
+    });
+  };
+  
+  const handlePagoInputChange = (e) => {
+    const { name, value } = e.target;
+    setPagoData({
+      ...pagoData,
+      [name]: value
+    });
   };
 
   const renderEstadoGarantia = (estado) => {
@@ -136,13 +224,29 @@ const GarantiasClienteXander = () => {
         <h1 className="text-2xl font-bold text-gray-800">
           Lista de Garantías del Cliente: {cliente.nombreCompleto}
         </h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-bob-primary hover:bg-bob-primary-dark text-white px-4 py-2 rounded-md flex items-center gap-2"
-        >
-          <Plus size={18} />
-          Nueva Garantía
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowReembolsoModal(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <RefreshCw size={18} />
+            Nuevo Reembolso
+          </button>
+          <button
+            onClick={() => setShowPagoModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <DollarSign size={18} />
+            Nuevo Pago
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-bob-primary hover:bg-bob-primary-dark text-white px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <Plus size={18} />
+            Nueva Garantía
+          </button>
+        </div>
       </div>
 
       {/* Información del cliente */}
@@ -319,6 +423,218 @@ const GarantiasClienteXander = () => {
                   className="px-4 py-2 bg-bob-primary border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-bob-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bob-primary"
                 >
                   Crear Garantía
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal para crear nuevo reembolso */}
+      {showReembolsoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-6">Nuevo Reembolso</h2>
+            <form onSubmit={handleReembolsoSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Monto *
+                  </label>
+                  <input
+                    type="number"
+                    name="monto"
+                    value={reembolsoData.monto}
+                    onChange={handleReembolsoInputChange}
+                    required
+                    step="0.01"
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Banco *
+                  </label>
+                  <input
+                    type="text"
+                    name="banco"
+                    value={reembolsoData.banco}
+                    onChange={handleReembolsoInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Número de Cuenta de Depósito *
+                  </label>
+                  <input
+                    type="text"
+                    name="numCuentaDeposito"
+                    value={reembolsoData.numCuentaDeposito}
+                    onChange={handleReembolsoInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Documento Adjunto (URL)
+                  </label>
+                  <input
+                    type="text"
+                    name="docAdjunto"
+                    value={reembolsoData.docAdjunto}
+                    onChange={handleReembolsoInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Comentarios
+                  </label>
+                  <textarea
+                    name="comentarios"
+                    value={reembolsoData.comentarios}
+                    onChange={handleReembolsoInputChange}
+                    rows="3"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  ></textarea>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowReembolsoModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bob-primary"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  Crear Reembolso
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal para crear nuevo pago (facturación) */}
+      {showPagoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-6">Nuevo Pago</h2>
+            <form onSubmit={handlePagoSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ID Subasta *
+                  </label>
+                  <input
+                    type="number"
+                    name="idSubasta"
+                    value={pagoData.idSubasta}
+                    onChange={handlePagoInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Monto *
+                  </label>
+                  <input
+                    type="number"
+                    name="monto"
+                    value={pagoData.monto}
+                    onChange={handlePagoInputChange}
+                    required
+                    step="0.01"
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Banco *
+                  </label>
+                  <input
+                    type="text"
+                    name="banco"
+                    value={pagoData.banco}
+                    onChange={handlePagoInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Número de Cuenta de Depósito *
+                  </label>
+                  <input
+                    type="text"
+                    name="numCuentaDeposito"
+                    value={pagoData.numCuentaDeposito}
+                    onChange={handlePagoInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Documento Adjunto (URL)
+                  </label>
+                  <input
+                    type="text"
+                    name="docAdjunto"
+                    value={pagoData.docAdjunto}
+                    onChange={handlePagoInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Concepto *
+                  </label>
+                  <input
+                    type="text"
+                    name="concepto"
+                    value={pagoData.concepto}
+                    onChange={handlePagoInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Comentarios
+                  </label>
+                  <textarea
+                    name="comentarios"
+                    value={pagoData.comentarios}
+                    onChange={handlePagoInputChange}
+                    rows="3"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                  ></textarea>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowPagoModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bob-primary"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Crear Pago
                 </button>
               </div>
             </form>

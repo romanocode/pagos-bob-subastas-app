@@ -60,14 +60,14 @@ const Home = () => {
             >
               Ver Demo Cliente
             </Button>
-            <Button
+            {/* <Button
               variant="outline"
               size="lg"
               onClick={() => handleStartDemo('admin')}
               className="px-8 py-3"
             >
               Ver Demo Admin
-            </Button>
+            </Button> */}
             <Button
               variant="secondary"
               size="lg"
@@ -85,7 +85,13 @@ const Home = () => {
                 Conectado como: <span className="font-semibold">{currentUser.nombre}</span>
                 <br />
                 <Link 
-                  to={currentUser.tipo_usuario?.includes('ADMIN') ? '/admin/dashboard' : '/cliente/dashboard'}
+                  to={
+                    currentUser.tipo_usuario?.includes('ADMIN') 
+                      ? '/admin/dashboard' 
+                      : currentUser.tipo_usuario === 'xander' 
+                        ? '/xander/dashboard' 
+                        : '/cliente/dashboard'
+                  }
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
                   Ir al Dashboard
