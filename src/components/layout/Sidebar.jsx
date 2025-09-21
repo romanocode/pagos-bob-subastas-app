@@ -25,7 +25,7 @@ const Sidebar = ({ userType }) => {
     },
     {
       path: '/cliente/wallet',
-      name: 'Mis Garantías',
+      name: 'Facturación',
       icon: Wallet
     },
     {
