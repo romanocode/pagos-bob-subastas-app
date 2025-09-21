@@ -18,6 +18,26 @@ const WalletCard = ({ wallet }) => {
     );
   }
 
+  // Debug: mostrar datos del wallet
+  console.log('WalletCard recibió:', wallet);
+
+  // Validar que los valores numéricos sean válidos
+  const saldoTotal = Number(wallet.saldo_total) || 0;
+  const saldoDisponible = Number(wallet.saldo_disponible) || 0;
+  const saldoRetenido = Number(wallet.saldo_retenido) || 0;
+
+  console.log('Valores procesados:', { saldoTotal, saldoDisponible, saldoRetenido });
+
+  // Función segura para formatear moneda
+  const safeFormatCurrency = (amount) => {
+    try {
+      return formatCurrency(amount);
+    } catch (error) {
+      console.error('Error formateando moneda:', error, amount);
+      return `$${amount?.toLocaleString() || '0'}`;
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg text-white p-6 shadow-lg">
       <div className="flex items-center justify-between mb-6">
@@ -40,7 +60,7 @@ const WalletCard = ({ wallet }) => {
         <div>
           <div className="text-blue-200 text-sm mb-1">Saldo Total</div>
           <div className="text-3xl font-bold">
-            {showBalance ? formatCurrency(wallet.saldo_total) : '••••••••'}
+            {showBalance ? safeFormatCurrency(saldoTotal) : '••••••••'}
           </div>
         </div>
 
@@ -49,14 +69,14 @@ const WalletCard = ({ wallet }) => {
           <div>
             <div className="text-blue-200 text-sm mb-1">Disponible</div>
             <div className="text-xl font-semibold text-green-300">
-              {showBalance ? formatCurrency(wallet.saldo_disponible) : '••••••'}
+              {showBalance ? safeFormatCurrency(saldoDisponible) : '••••••'}
             </div>
           </div>
           
           <div>
             <div className="text-blue-200 text-sm mb-1">Retenido</div>
             <div className="text-xl font-semibold text-yellow-300">
-              {showBalance ? formatCurrency(wallet.saldo_retenido) : '••••••'}
+              {showBalance ? safeFormatCurrency(saldoRetenido) : '••••••'}
             </div>
           </div>
         </div>
@@ -71,7 +91,7 @@ const WalletCard = ({ wallet }) => {
             <div 
               className="bg-green-400 h-full transition-all duration-300"
               style={{ 
-                width: `${(wallet.saldo_disponible / wallet.saldo_total) * 100}%` 
+                width: `${saldoTotal > 0 ? (saldoDisponible / saldoTotal) * 100 : 0}%` 
               }}
             ></div>
           </div>

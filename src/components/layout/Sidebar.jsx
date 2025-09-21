@@ -10,7 +10,8 @@ import {
   Gavel,
   RefreshCw,
   BarChart3,
-  Shield
+  Shield,
+  Receipt
 } from 'lucide-react';
 
 const Sidebar = ({ userType }) => {
@@ -24,7 +25,7 @@ const Sidebar = ({ userType }) => {
     },
     {
       path: '/cliente/wallet',
-      name: 'Mis Garantías',
+      name: 'Facturación',
       icon: Wallet
     },
     {
@@ -82,6 +83,11 @@ const Sidebar = ({ userType }) => {
       path: '/xander/clientes',
       name: 'Clientes',
       icon: Users
+    },
+    {
+      path: '/xander/facturacion',
+      name: 'Facturación',
+      icon: Receipt
     },
     {
       path: '/xander/reembolsos',
