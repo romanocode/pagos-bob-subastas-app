@@ -328,17 +328,19 @@ const FacturacionXander = () => {
             <p className="text-gray-600">No se encontraron facturas{searchTerm ? ' que coincidan con la búsqueda' : ''}.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+          <div className="overflow-x-auto max-w-full">
+            <table className="min-w-full divide-y divide-gray-200 table-fixed">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nº Factura</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre Completo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo Documento</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número Documento</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">ID</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Nombre</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Correo</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Tipo</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Núm Doc</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Razón Social</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Monto</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Estado</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Acciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -349,27 +351,33 @@ const FacturacionXander = () => {
                   
                   return (
                     <tr key={factura.idFacturacion} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 truncate max-w-[80px]">
                         {factura.idFacturacion}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[120px]">
                         {cliente.nombreCompleto}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[150px]">
+                        {cliente.correo}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[80px]">
                         {cliente.tipDocumento}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[100px]">
                         {cliente.numDocumento}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[120px]">
+                        {cliente.razonSocial || "No especificada"}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[80px]">
                         {formatCurrency(factura.monto, 'USD')}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap max-w-[80px]">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${estadoColor} bg-opacity-10`}>
                           {estado}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm font-medium max-w-[100px]">
                         <div className="flex space-x-2">
                           <button
                             onClick={() => openDetalleModal(factura)}
@@ -577,7 +585,7 @@ const FacturacionXander = () => {
               </button>
               <button
                 type="button"
-                onClick={cambiarEstadoFactura}
+                onClick={() => cambiarEstadoFactura(currentFactura, accionEstado)}
                 className={`px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white ${
                   accionEstado === 'validar' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
                 }`}
