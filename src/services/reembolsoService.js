@@ -102,7 +102,21 @@ export const reembolsoService = {
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  /**
+   * Obtiene todos los reembolsos de un cliente
+   * @param {string} clienteId - ID del cliente
+   * @returns {Promise} Promesa con la respuesta
+   */
+  getByCliente: async (clienteId) => {
+    try {
+      const response = await api.get(API_ROUTES.REEMBOLSOS_CLIENTE(clienteId));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default reembolsoService;

@@ -88,7 +88,21 @@ export const facturacionService = {
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  /**
+   * Obtiene todas las facturaciones de un cliente
+   * @param {string} clienteId - ID del cliente
+   * @returns {Promise} Promesa con la respuesta
+   */
+  getByCliente: async (clienteId) => {
+    try {
+      const response = await api.get(API_ROUTES.FACTURACIONES_CLIENTE(clienteId));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default facturacionService;

@@ -63,12 +63,14 @@ export const API_ROUTES = {
   REEMBOLSO_POR_ID: (id) => `/reembolsos/${id}`,
   APROBAR_REEMBOLSO: (id) => `/reembolsos/${id}/validate`,
   REVOCAR_REEMBOLSO: (id) => `/reembolsos/${id}/revoke`,
+  REEMBOLSOS_CLIENTE: (id) => `/reembolsos/cliente/${id}`,
   
   // Facturación
   FACTURACION: '/facturacion',
   FACTURACION_POR_ID: (id) => `/facturacion/${id}`,
   VALIDAR_FACTURACION: (id) => `/facturacion/${id}/validate`,
   REVOCAR_FACTURACION: (id) => `/facturacion/${id}/revoke`,
+  FACTURACIONES_CLIENTE: (id) => `/facturacion/cliente/${id}`,
   
   // Subastas
   SUBASTAS: '/subastas',
