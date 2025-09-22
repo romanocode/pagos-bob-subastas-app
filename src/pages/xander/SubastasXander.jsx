@@ -33,13 +33,15 @@ const SubastasXander = () => {
 
   // Formulario de garantía
   const [garantiaData, setGarantiaData] = useState({
-    idSubasta: '',
+    id: '',
     idCliente: '',
     concepto: '',
     fechaSubasta: '',
     fechaExpiracion: '',
     tipo: 'Ingreso',
     moneda: 'USD',
+    montoPuja: '',
+    porcentaje: '',
     montoGarantia: '',
     banco: '',
     numCuentaDeposito: '',
@@ -93,10 +95,29 @@ const SubastasXander = () => {
 
   const handleGarantiaInputChange = (e) => {
     const { name, value } = e.target;
-    setGarantiaData({
-      ...garantiaData,
-      [name]: value
-    });
+    const updatedData = { ...garantiaData, [name]: value };
+    
+    // Calcular automáticamente según el campo modificado
+    if (name === 'montoPuja') {
+      // Si se modifica el monto de puja, recalcular el monto de garantía basado en el porcentaje actual
+      const montoPuja = parseFloat(value) || 0;
+      const porcentaje = parseFloat(updatedData.porcentaje) || 0;
+      updatedData.montoGarantia = (montoPuja * porcentaje / 100).toFixed(2);
+    } else if (name === 'porcentaje') {
+      // Si se modifica el porcentaje, recalcular el monto de garantía
+      const montoPuja = parseFloat(updatedData.montoPuja) || 0;
+      const porcentaje = parseFloat(value) || 0;
+      updatedData.montoGarantia = (montoPuja * porcentaje / 100).toFixed(2);
+    } else if (name === 'montoGarantia') {
+      // Si se modifica el monto de garantía, recalcular el porcentaje
+      const montoPuja = parseFloat(updatedData.montoPuja) || 0;
+      const montoGarantia = parseFloat(value) || 0;
+      if (montoPuja > 0) {
+        updatedData.porcentaje = ((montoGarantia / montoPuja) * 100).toFixed(2);
+      }
+    }
+    
+    setGarantiaData(updatedData);
   };
 
   const handleSubmit = async (e) => {
@@ -115,10 +136,10 @@ const SubastasXander = () => {
           setSubastas([...subastas, response.data]);
         }
       } else {
-        response = await subastaService.update(currentSubasta.idSubasta, subastaData);
+        response = await subastaService.update(currentSubasta.id, subastaData);
         if (response.success) {
           toast.success(MENSAJES.SUBASTA_ACTUALIZADA);
-          setSubastas(subastas.map(s => s.idSubasta === currentSubasta.idSubasta ? response.data : s));
+          setSubastas(subastas.map(s => s.id === currentSubasta.id ? response.data : s));
         }
       }
 
@@ -149,23 +170,13 @@ const SubastasXander = () => {
       toast.error(MENSAJES.ERROR_SERVIDOR);
     }
   };
-  
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setGarantiaData({
-        ...garantiaData,
-        docAdjunto: file.name
-      });
-    }
-  };
 
   const handleCerrarSubasta = async () => {
     try {
-      const response = await subastaService.close(currentSubasta.idSubasta);
+      const response = await subastaService.close(currentSubasta.id);
       if (response.success) {
         toast.success(MENSAJES.SUBASTA_CERRADA);
-        setSubastas(subastas.map(s => s.idSubasta === currentSubasta.idSubasta ? { ...s, estado: SUBASTA_ESTADOS.CERRADA } : s));
+        setSubastas(subastas.map(s => s.id === currentSubasta.id ? { ...s, estado: SUBASTA_ESTADOS.CERRADA } : s));
         setShowConfirmModal(false);
       }
     } catch (error) {
@@ -199,17 +210,16 @@ const SubastasXander = () => {
 
   const openGarantiaModal = (subasta) => {
     setCurrentSubasta(subasta);
-    // Calcular el monto de la garantía como el 8% del monto de la subasta
-    const montoSubasta = parseFloat(subasta.monto);
-    const montoGarantia = montoSubasta * 0.08;
-    
+
     setGarantiaData({
       ...garantiaData,
-      idSubasta: subasta.idSubasta,
+      idSubasta: subasta.id,
       fechaSubasta: new Date(subasta.fecha).toISOString().split('T')[0],
-      fechaExpiracion: new Date(new Date(subasta.fecha).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      fechaExpiracion: new Date(new Date(subasta.fecha)).toISOString().split('T')[0],
       moneda: subasta.moneda,
-      montoGarantia: montoGarantia.toFixed(2) // Redondear a 2 decimales
+      montoPuja: 0.00, // Establecer el monto de puja como el monto de la subasta
+      porcentaje: 0.00, // Establecer el porcentaje inicial como 8%
+      montoGarantia: 0.00 // Redondear a 2 decimales
     });
     setShowGarantiaModal(true);
   };
@@ -236,13 +246,15 @@ const SubastasXander = () => {
 
   const resetGarantiaForm = () => {
     setGarantiaData({
-      idSubasta: '',
+      id: '',
       idCliente: '',
       concepto: '',
       fechaSubasta: '',
       fechaExpiracion: '',
       tipo: 'Ingreso',
       moneda: 'USD',
+      montoPuja: '',
+      porcentaje: '',
       montoGarantia: '',
       banco: '',
       numCuentaDeposito: '',
@@ -280,7 +292,7 @@ const SubastasXander = () => {
           </div>
         ) : (
           subastas.map((subasta) => (
-            <div key={subasta.idSubasta} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div key={subasta.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               {subasta.imgSubasta && (
                 <div className="h-48 overflow-hidden">
                   <img 
@@ -505,7 +517,7 @@ const SubastasXander = () => {
                   >
                     <option value="">Seleccione un cliente</option>
                     {clientes.map(cliente => (
-                      <option key={cliente.idCliente} value={cliente.idCliente}>
+                      <option key={cliente.id} value={cliente.id}>
                         {cliente.nombreCompleto} - {cliente.numDocumento}
                       </option>
                     ))}
@@ -529,8 +541,8 @@ const SubastasXander = () => {
                     <option value="Ganador 3">Ganador 3</option>
                   </select>
                 </div>
-
-                <div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Fecha Expiración *
                   </label>
@@ -543,16 +555,7 @@ const SubastasXander = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
                   />
                 </div>
-
-                {/* Campo tipo oculto con valor por defecto "Ingreso" */}
-                <input
-                  type="hidden"
-                  name="tipo"
-                  value={garantiaData.tipo}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Moneda *
                     </label>
@@ -569,10 +572,48 @@ const SubastasXander = () => {
                       ))}
                     </select>
                   </div>
-
+                </div>
+                
+                {/* Campo tipo oculto con valor por defecto "Ingreso" */}
+                <input
+                  type="hidden"
+                  name="tipo"
+                  value={garantiaData.tipo}
+                />
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Monto Puja
+                    </label>
+                    <input
+                      type="number"
+                      name="montoPuja"
+                      value={garantiaData.montoPuja}
+                      onChange={handleGarantiaInputChange}
+                      required
+                      min="0"
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary bg-gray-100"
+                    />
+                  </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Monto Garantía (8%)
+                      % Garantía
+                    </label>
+                    <input
+                      type="number"
+                      name="porcentaje"
+                      value={garantiaData.porcentaje}
+                      onChange={handleGarantiaInputChange}
+                      required
+                      min="0"
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Total Garantía
                     </label>
                     <input
                       type="number"
@@ -582,66 +623,9 @@ const SubastasXander = () => {
                       required
                       min="0"
                       step="0.01"
-                      readOnly
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary bg-gray-100"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Banco *
-                  </label>
-                  <input
-                    type="text"
-                    name="banco"
-                    value={garantiaData.banco}
-                    onChange={handleGarantiaInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Número de Cuenta de Depósito *
-                  </label>
-                  <input
-                    type="text"
-                    name="numCuentaDeposito"
-                    value={garantiaData.numCuentaDeposito}
-                    onChange={handleGarantiaInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Documento Adjunto *
-                  </label>
-                  <input
-                    type="file"
-                    name="docAdjunto"
-                    onChange={handleFileChange}
-                    accept="image/*,.pdf"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Formatos aceptados: JPG, PNG, PDF. Máximo 5MB.</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Comentarios
-                  </label>
-                  <textarea
-                    name="comentarios"
-                    value={garantiaData.comentarios}
-                    onChange={handleGarantiaInputChange}
-                    rows="2"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
-                  ></textarea>
                 </div>
               </div>
 

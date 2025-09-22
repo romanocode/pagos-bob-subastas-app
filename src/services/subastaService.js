@@ -55,7 +55,7 @@ const subastaService = {
 
   close: async (id) => {
     try {
-      const response = await api.patch(`${API_ROUTES.SUBASTAS}/${id}/close`);
+      const response = await api.patch(`${API_ROUTES.SUBASTAS}/${id}/closeSubasta`);
       return response.data;
     } catch (error) {
       console.error(`Error al cerrar subasta con ID ${id}:`, error);

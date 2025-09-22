@@ -40,6 +40,7 @@ export const clienteService = {
    */
   create: async (clienteData) => {
     try {
+      debugger;
       const response = await api.post(API_ROUTES.CLIENTES, clienteData);
       return response.data;
     } catch (error) {
@@ -67,14 +68,28 @@ export const clienteService = {
    * @param {string} id - ID del cliente
    * @returns {Promise} Promesa con la respuesta
    */
-  delete: async (id) => {
+  patch: async (id) => {
     try {
-      const response = await api.delete(API_ROUTES.CLIENTE_POR_ID(id));
+      const response = await api.patch(API_ROUTES.CLIENTE_POR_ID(id));
       return response.data;
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  /**
+   * Obtener cliente por correo electrónico
+   * @param {string} correo - Correo electrónico del cliente
+   * @returns {Promise} Promesa con la respuesta
+   */
+  getByCorreo: async (correo) => {
+    try {
+      const response = await api.get(API_ROUTES.CLIENTE_POR_CORREO(correo));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default clienteService;
