@@ -39,6 +39,7 @@ export const facturacionService = {
    * @returns {Promise} Promesa con la respuesta
    */
   create: async (facturacionData) => {
+    debugger;
     try {
       const response = await api.post(API_ROUTES.FACTURACION, facturacionData);
       return response.data;

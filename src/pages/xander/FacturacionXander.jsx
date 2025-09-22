@@ -1,24 +1,33 @@
-// src/pages/xander/FacturacionXander.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Search, Edit, Eye, FileX, FileCheck, Plus, AlertTriangle, Download } from 'lucide-react';
+import { Search, Edit, Eye, FileX, FileCheck, Plus, AlertTriangle, Download, Upload, MessageSquare, Filter } from 'lucide-react';
 import facturacionService from '../../services/facturacionService';
 import clienteService from '../../services/clienteService';
+import garantiaService from '../../services/garantiaService';
+import reembolsoService from '../../services/reembolsoService';
 import { MENSAJES } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatters';
 
 const FacturacionXander = () => {
-  const navigate = useNavigate();
   const [facturas, setFacturas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filtroFechaInicio, setFiltroFechaInicio] = useState('');
+  const [filtroFechaFin, setFiltroFechaFin] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
+  const [filtrosAplicados, setFiltrosAplicados] = useState({
+    fechaInicio: '',
+    fechaFin: '',
+    estado: ''
+  });
+  const [showFiltros, setShowFiltros] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showDetalleModal, setShowDetalleModal] = useState(false);
   const [currentFactura, setCurrentFactura] = useState(null);
-  const [formMode, setFormMode] = useState('create'); // 'create' o 'edit'
+  const [formMode, setFormMode] = useState('create'); // 'create', 'edit' o 'view'
   const [accionEstado, setAccionEstado] = useState(''); // 'validar' o 'revocar'
 
   // Formulario
@@ -38,82 +47,6 @@ const FacturacionXander = () => {
     cargarClientes();
   }, []);
 
-  // Datos de ejemplo para mostrar en la interfaz
-  const facturasEjemplo = [
-    {
-      idFacturacion: 'FAC-001',
-      idCliente: 'CLI-001',
-      idSubasta: 'SUB-123',
-      monto: 1500.00,
-      banco: 'Banco de Crédito',
-      numCuentaDeposito: '123-456-789',
-      concepto: 'Pago por subasta de vehículo',
-      comentarios: 'Pago realizado correctamente',
-      createdAt: '2023-10-15T10:30:00Z',
-      validatedAt: '2023-10-16T08:45:00Z',
-      revokedAt: null
-    },
-    {
-      idFacturacion: 'FAC-002',
-      idCliente: 'CLI-002',
-      idSubasta: 'SUB-456',
-      monto: 2300.50,
-      banco: 'BBVA',
-      numCuentaDeposito: '987-654-321',
-      concepto: 'Pago por subasta de arte',
-      comentarios: 'Cliente solicitó factura con urgencia',
-      createdAt: '2023-10-18T14:20:00Z',
-      validatedAt: null,
-      revokedAt: null
-    },
-    {
-      idFacturacion: 'FAC-003',
-      idCliente: 'CLI-003',
-      idSubasta: 'SUB-789',
-      monto: 850.75,
-      banco: 'Interbank',
-      numCuentaDeposito: '456-789-123',
-      concepto: 'Pago por subasta de antigüedades',
-      comentarios: 'Factura con datos de empresa',
-      createdAt: '2023-10-20T09:15:00Z',
-      validatedAt: '2023-10-21T11:30:00Z',
-      revokedAt: '2023-10-22T16:45:00Z'
-    }
-  ];
-
-  // Datos de ejemplo para clientes
-  const clientesEjemplo = [
-    {
-      idCliente: 'CLI-001',
-      nombreCompleto: 'Juan Pérez Rodríguez',
-      correo: 'juan.perez@ejemplo.com',
-      tipDocumento: 'DNI',
-      numDocumento: '45678912',
-      numCelular: '987654321',
-      dtFacRazonSocial: 'Inversiones Pérez S.A.C.',
-      dtFacRuc: '20123456789'
-    },
-    {
-      idCliente: 'CLI-002',
-      nombreCompleto: 'María García López',
-      correo: 'maria.garcia@ejemplo.com',
-      tipDocumento: 'CE',
-      numDocumento: 'CE123456',
-      numCelular: '987123456',
-      dtFacRazonSocial: '',
-      dtFacRuc: ''
-    },
-    {
-      idCliente: 'CLI-003',
-      nombreCompleto: 'Carlos Mendoza Torres',
-      correo: 'carlos.mendoza@ejemplo.com',
-      tipDocumento: 'RUC',
-      numDocumento: '10456789012',
-      numCelular: '912345678',
-      dtFacRazonSocial: 'Mendoza Importaciones E.I.R.L.',
-      dtFacRuc: '10456789012'
-    }
-  ];
 
   const cargarFacturas = async () => {
     setIsLoading(true);
@@ -122,15 +55,9 @@ const FacturacionXander = () => {
       const response = await facturacionService.getAll();
       if (response.data && response.data.length > 0) {
         setFacturas(response.data);
-      } else {
-        // Si no hay datos o hay un error, usar los datos de ejemplo
-        setFacturas(facturasEjemplo);
       }
     } catch (error) {
       console.error('Error al cargar facturas:', error);
-      // Usar datos de ejemplo en caso de error
-      setFacturas(facturasEjemplo);
-      toast.info("Mostrando datos de ejemplo para visualización");
     } finally {
       setIsLoading(false);
     }
@@ -141,12 +68,9 @@ const FacturacionXander = () => {
       const response = await clienteService.getAll();
       if (response.data && response.data.length > 0) {
         setClientes(response.data);
-      } else {
-        setClientes(clientesEjemplo);
       }
     } catch (error) {
       console.error('Error al cargar clientes:', error);
-      setClientes(clientesEjemplo);
     }
   };
 
@@ -154,17 +78,53 @@ const FacturacionXander = () => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredFacturas = facturas.filter(factura => {
-    const cliente = clientes.find(c => c.idCliente === factura.idCliente);
-    if (!cliente) return false;
-    
-    return (
-      cliente.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente.correo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente.numDocumento.includes(searchTerm) ||
-      factura.concepto.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  const getEstadoFactura = (factura) => {
+    if (factura.validatedAt) return "Informado a Cliente";
+    return "Pendiente a Informar";
+  };
+
+  // Mostrar todas las facturas, solo filtrar por término de búsqueda si existe
+  const filteredFacturas = facturas
+    .filter(factura => {
+      // Filtro por término de búsqueda
+      if (searchTerm) {
+        const cliente = clientes.find(c => c.id === factura.idCliente);
+        if (!cliente) return false;
+        const matchesSearch = 
+          cliente.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (factura.concepto && factura.concepto.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (factura.monto && factura.monto.toString().includes(searchTerm));
+        
+        if (!matchesSearch) return false;
+      }
+
+      
+
+      // Filtro por estado
+      if (filtrosAplicados.estado) {
+        const estado = getEstadoFactura(factura);
+        if (filtrosAplicados.estado === 'pendiente' && estado !== 'Pendiente a Informar') return false;
+        if (filtrosAplicados.estado === 'informado' && estado !== 'Informado a Cliente') return false;
+      }
+      
+      // Filtro por fecha
+      if (filtrosAplicados.fechaInicio || filtrosAplicados.fechaFin) {
+        const fechaFactura = new Date(factura.createdAt);
+        
+        if (filtrosAplicados.fechaInicio) {
+          const fechaInicio = new Date(filtrosAplicados.fechaInicio);
+          if (fechaFactura < fechaInicio) return false;
+        }
+        
+        if (filtrosAplicados.fechaFin) {
+          const fechaFin = new Date(filtrosAplicados.fechaFin);
+          fechaFin.setHours(23, 59, 59, 999); // Final del día
+          if (fechaFactura > fechaFin) return false;
+        }
+      }
+      
+      return true;
+    });
 
   const openCreateModal = () => {
     setFormData({
@@ -197,6 +157,22 @@ const FacturacionXander = () => {
     setShowModal(true);
   };
 
+  const openViewModal = (factura) => {
+    setCurrentFactura(factura);
+    setFormData({
+      idCliente: factura.idCliente,
+      idSubasta: factura.idSubasta,
+      monto: factura.monto,
+      banco: factura.banco,
+      numCuentaDeposito: factura.numCuentaDeposito,
+      docAdjunto: factura.docAdjunto || '',
+      concepto: factura.concepto,
+      comentarios: factura.comentarios || ''
+    });
+    setFormMode('view');
+    setShowModal(true);
+  };
+
   const closeModal = () => {
     setShowModal(false);
     setCurrentFactura(null);
@@ -207,20 +183,9 @@ const FacturacionXander = () => {
     setCurrentFactura(null);
   };
   
-  const openDetalleModal = (factura) => {
-    setCurrentFactura(factura);
-    setShowDetalleModal(true);
-  };
-  
   const closeDetalleModal = () => {
     setShowDetalleModal(false);
     setCurrentFactura(null);
-  };
-
-  const openConfirmModal = (factura, accion) => {
-    setCurrentFactura(factura);
-    setAccionEstado(accion);
-    setShowConfirmModal(true);
   };
 
   const cambiarEstadoFactura = async () => {
@@ -244,22 +209,71 @@ const FacturacionXander = () => {
     }
   };
 
+  // Estado para controlar el error de monto
+  const [montoError, setMontoError] = useState('');
+  
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+    
+    // Si se selecciona un cliente, actualizar el saldo
+    if (name === 'idCliente' && value) {
+      const clienteSeleccionado = clientes.find(cliente => cliente.id === Number(value));
+      if (clienteSeleccionado) {
+        setFormData(prevData => ({
+          ...prevData,
+          saldoCliente: clienteSeleccionado.saldoTotalDolar || 0
+        }));
+        
+        // Validar el monto si ya existe
+        if (formData.monto) {
+          validarMonto(formData.monto, clienteSeleccionado.saldoTotalDolar || 0);
+        }
+      }
+    }
+    
+    // Si se cambia el monto, validar que no sea mayor al saldo
+    if (name === 'monto' && value && formData.saldoCliente) {
+      validarMonto(value, formData.saldoCliente);
+    }
+  };
+  
+  // Función para validar que el monto no supere el saldo
+  const validarMonto = (monto, saldo) => {
+    if (parseFloat(monto) > parseFloat(saldo)) {
+      setMontoError('El monto no puede ser mayor al saldo del cliente');
+    } else {
+      setMontoError('');
+    }
+  };
+
+  const handleFacturaFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        docAdjunto: file,
+        docAdjuntoNombre: file.name
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (formMode === 'create') {
+        formData.docAdjunto = formData.docAdjuntoNombre || '';
         await facturacionService.create(formData);
         toast.success(MENSAJES.FACTURACION_CREADA);
       } else {
-        await facturacionService.update(currentFactura.idFacturacion, formData);
+        // 
+        if(formData.docAdjunto instanceof File) {
+          formData.docAdjunto = formData.docAdjuntoNombre || '';
+        }
+        await facturacionService.update(currentFactura.id, formData);
         toast.success(MENSAJES.FACTURACION_ACTUALIZADA);
       }
       closeModal();
@@ -275,20 +289,68 @@ const FacturacionXander = () => {
   };
 
   const getClienteInfo = (idCliente) => {
-    const cliente = clientes.find(c => c.idCliente === idCliente);
+    const cliente = clientes.find(c => c.id === idCliente);
     return cliente || { nombreCompleto: 'Cliente no encontrado', correo: '', numDocumento: '', tipDocumento: '' };
   };
 
-  const getEstadoFactura = (factura) => {
-    if (factura.revokedAt) return 'Revocada';
-    if (factura.validatedAt) return 'Validada';
-    return 'Pendiente';
+  // Función para calcular el saldo total del cliente
+  const calcularSaldoTotal = async (clienteId) => {
+    try {
+      // Obtener garantías validadas
+      const garantiasResponse = await garantiaService.getByCliente(clienteId);
+      const sumaGarantias = garantiasResponse.data
+        .filter(garantia => garantia.validatedAt && !garantia.revokedAt)
+        .reduce((total, garantia) => total + parseFloat(garantia.montoGarantia || 0), 0);
+      
+      // Obtener facturas validadas
+      const facturasResponse = await facturacionService.getByCliente(clienteId);
+      const sumaFacturas = facturasResponse.data
+        .filter(factura => factura.validatedAt && !factura.revokedAt)
+        .reduce((total, factura) => total + parseFloat(factura.monto || 0), 0);
+      
+      // Obtener reembolsos validados
+      const reembolsosResponse = await reembolsoService.getByCliente(clienteId);
+      const sumaReembolsos = reembolsosResponse.data
+        .filter(reembolso => reembolso.validatedAt && !reembolso.revokedAt)
+        .reduce((total, reembolso) => total + parseFloat(reembolso.monto || 0), 0);
+      
+      // Calcular saldo total
+      return sumaGarantias - (sumaFacturas + sumaReembolsos);
+    } catch (error) {
+      console.error("Error al calcular saldo total:", error);
+      return 0;
+    }
   };
+
+  // Función para enviar mensaje de WhatsApp
+  const enviarWhatsApp = async (factura) => {
+    try {
+      // Validar la facturación
+      await facturacionService.validate(factura.id);
+      
+      // Obtener cliente y enviar mensaje
+      const cliente = getClienteInfo(factura.idCliente);
+      const mensaje = `Hola ${cliente.nombreCompleto}, te informamos que ya se realizó la facturación por un monto de ${formatCurrency(factura.monto, 'USD')} bajo el concepto por ${factura.concepto}`;
+      window.open(`https://wa.me/${cliente.numCelular}?text=${encodeURIComponent(mensaje)}`, '_blank');
+      
+      // Calcular y actualizar el saldo total del cliente
+      const saldoTotal = await calcularSaldoTotal(factura.idCliente);
+      await clienteService.update(factura.idCliente, { saldoTotalDolar: saldoTotal });
+      
+      // Actualizar la lista de facturas
+      toast.success('Factura validada y mensaje enviado correctamente');
+      cargarFacturas();
+    } catch (error) {
+      console.error('Error al validar la factura:', error);
+      toast.error('Error al validar la factura');
+    }
+  };
+
+  
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'Validada': return 'text-green-600';
-      case 'Revocada': return 'text-red-600';
+      case 'Informado a Cliente': return 'text-green-600';
       default: return 'text-yellow-600';
     }
   };
@@ -315,7 +377,81 @@ const FacturacionXander = () => {
             onChange={handleSearch}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bob-primary"
           />
+          <button 
+            onClick={() => setShowFiltros(!showFiltros)}
+            className="ml-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center"
+          >
+            <Filter size={18} className="mr-1" /> Filtros
+          </button>
         </div>
+
+        {showFiltros && (
+          <div className="bg-gray-50 p-4 rounded-md mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Desde</label>
+              <input
+                type="date"
+                value={filtroFechaInicio}
+                onChange={(e) => setFiltroFechaInicio(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bob-primary"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Hasta</label>
+              <input
+                type="date"
+                value={filtroFechaFin}
+                onChange={(e) => setFiltroFechaFin(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bob-primary"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bob-primary"
+              >
+                <option value="">Todos los estados</option>
+                <option value="pendiente">Pendiente a Informar</option>
+                <option value="informado">Informado a Cliente</option>
+              </select>
+            </div>
+            
+            <div className="flex items-end space-x-2">
+              <button
+                onClick={() => {
+                  setFiltrosAplicados({
+                    fechaInicio: filtroFechaInicio,
+                    fechaFin: filtroFechaFin,
+                    estado: filtroEstado
+                  });
+                }}
+                className="px-4 py-2 bg-bob-primary text-white rounded-md hover:bg-bob-primary-dark"
+              >
+                Aplicar filtros
+              </button>
+              <button
+                onClick={() => {
+                  setFiltroFechaInicio('');
+                  setFiltroFechaFin('');
+                  setFiltroEstado('');
+                  setFiltrosAplicados({
+                    cliente: '',
+                    fechaInicio: '',
+                    fechaFin: '',
+                    estado: ''
+                  });
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="text-center py-4">
@@ -333,13 +469,10 @@ const FacturacionXander = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">ID</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Nombre</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Correo</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Tipo</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Núm Doc</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Razón Social</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Cliente</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Concepto</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Monto</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Estado</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Estado</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Acciones</th>
                 </tr>
               </thead>
@@ -347,77 +480,76 @@ const FacturacionXander = () => {
                 {filteredFacturas.map((factura) => {
                   const cliente = getClienteInfo(factura.idCliente);
                   const estado = getEstadoFactura(factura);
-                  const estadoColor = getEstadoColor(estado);
                   
                   return (
                     <tr key={factura.idFacturacion} className="hover:bg-gray-50">
                       <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 truncate max-w-[80px]">
-                        {factura.idFacturacion}
+                        {factura.id}
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[120px]">
                         {cliente.nombreCompleto}
                       </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[150px]">
-                        {cliente.correo}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[80px]">
-                        {cliente.tipDocumento}
-                      </td>
                       <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[100px]">
-                        {cliente.numDocumento}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[120px]">
-                        {cliente.razonSocial || "No especificada"}
+                        {factura.concepto}
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 truncate max-w-[80px]">
                         {formatCurrency(factura.monto, 'USD')}
                       </td>
-                      <td className="px-3 py-3 whitespace-nowrap max-w-[80px]">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${estadoColor} bg-opacity-10`}>
+                      <td className="px-3 py-3 whitespace-nowrap max-w-[120px]">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          estado === 'Informado a Cliente' 
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                           {estado}
                         </span>
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-sm font-medium max-w-[100px]">
                         <div className="flex space-x-2">
-                          <button
-                            onClick={() => openDetalleModal(factura)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Ver detalles"
-                          >
-                            <Eye size={18} />
-                          </button>
-                          <button
-                            onClick={() => openEditModal(factura)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                            title="Editar"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          {estado === 'Pendiente' && (
+                          {estado === 'Pendiente a Informar' ? (
+                            <>
+                              <button
+                                onClick={() => openEditModal(factura)}
+                                className="text-indigo-600 hover:text-indigo-900"
+                                title="Editar"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button
+                                onClick={() => window.open(factura.docAdjunto, '_blank')}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Ver documento"
+                              >
+                                <FileCheck size={18} />
+                              </button>
+                              <button
+                                onClick={() => enviarWhatsApp(factura)}
+                                className="text-green-600 hover:text-green-900"
+                                title="Enviar a WhatsApp"
+                              >
+                                <MessageSquare size={18} />
+                              </button>
+                            </>
+                          ) : (
+                            <>
                             <button
-                              onClick={() => openConfirmModal(factura, 'validar')}
-                              className="text-green-600 hover:text-green-900"
-                              title="Validar"
+                              onClick={() => window.open(factura.docAdjunto, '_blank')}
+                              className="text-blue-600 hover:text-blue-900 mr-2"
+                              title="Ver documento"
                             >
                               <FileCheck size={18} />
                             </button>
-                          )}
-                          {estado === 'Validada' && (
                             <button
-                              onClick={() => openConfirmModal(factura, 'revocar')}
-                              className="text-red-600 hover:text-red-900"
-                              title="Revocar"
+                              onClick={() => openViewModal(factura)}
+                              className="text-green-600 hover:text-green-900"
+                              title="Ver detalles"
                             >
-                              <FileX size={18} />
+                              <Eye size={18} />
                             </button>
+                            </>
                           )}
-                          <button
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Descargar"
-                          >
-                            <Download size={18} />
-                          </button>
                         </div>
+                        
                       </td>
                     </tr>
                   );
@@ -434,7 +566,7 @@ const FacturacionXander = () => {
           <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
-                {formMode === 'create' ? 'Nueva Factura' : 'Editar Factura'}
+                {formMode === 'create' ? 'Nueva Factura' : formMode === 'edit' ? 'Editar Factura' : 'Detalles de Factura'}
               </h2>
               <button 
                 type="button" 
@@ -446,7 +578,7 @@ const FacturacionXander = () => {
             </div>
             <form onSubmit={handleSubmit} className="overflow-y-auto">
               <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
+                <div className="col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Cliente *
                   </label>
@@ -455,11 +587,12 @@ const FacturacionXander = () => {
                     value={formData.idCliente}
                     onChange={handleInputChange}
                     required
+                    disabled={formMode === 'view'}
                     className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
                   >
                     <option value="">Seleccione un cliente</option>
                     {clientes.map(cliente => (
-                      <option key={cliente.idCliente} value={cliente.idCliente}>
+                      <option key={cliente.id} value={cliente.id}>
                         {cliente.nombreCompleto} - {cliente.numDocumento}
                       </option>
                     ))}
@@ -467,16 +600,35 @@ const FacturacionXander = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ID Subasta *
+                    Saldo de Cliente
                   </label>
                   <input
-                    type="text"
-                    name="idSubasta"
-                    value={formData.idSubasta}
+                    type="number"
+                    name="saldoCliente"
+                    value={formData.saldoCliente}
                     onChange={handleInputChange}
-                    required
+                    min="0"
+                    step="0.01"
+                    disabled={true}
                     className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Concepto *
+                  </label>
+                  <select
+                    name="concepto"
+                    value={formData.concepto}
+                    onChange={handleInputChange}
+                    required
+                    disabled={formMode === 'view'}
+                    className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
+                  >
+                    <option value="">Seleccione un concepto</option>
+                    <option value="Ganador">Ganador</option>
+                    <option value="Penalidad">Penalidad</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -490,8 +642,12 @@ const FacturacionXander = () => {
                     required
                     min="0"
                     step="0.01"
-                    className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
+                    disabled={formMode === 'view'}
+                    className={`w-full px-3 py-1.5 border ${montoError ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm`}
                   />
+                  {montoError && (
+                    <p className="text-red-500 text-xs mt-1">{montoError}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -503,6 +659,7 @@ const FacturacionXander = () => {
                     value={formData.banco}
                     onChange={handleInputChange}
                     required
+                    disabled={formMode === 'view'}
                     className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
                   />
                 </div>
@@ -516,22 +673,39 @@ const FacturacionXander = () => {
                     value={formData.numCuentaDeposito}
                     onChange={handleInputChange}
                     required
+                    disabled={formMode === 'view'}
                     className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Concepto *
-                  </label>
-                  <input
-                    type="text"
-                    name="concepto"
-                    value={formData.concepto}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
-                  />
+                <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Documento Adjunto
+                </label>
+                <div className="flex items-center space-x-2">
+                  {formMode !== 'view' ? (
+                    <>
+                      <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-md flex items-center">
+                        <Upload size={16} className="mr-2" />
+                        <span>Subir archivo</span>
+                        <input
+                          type="file"
+                          onChange={handleFacturaFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                      {formData.docAdjuntoNombre && (
+                        <span className="text-sm text-gray-600">
+                          {formData.docAdjuntoNombre}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm text-gray-600">
+                      {formData.docAdjunto ? "Documento adjunto disponible" : "Sin documento adjunto"}
+                    </span>
+                  )}
                 </div>
+              </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Comentarios
@@ -541,6 +715,7 @@ const FacturacionXander = () => {
                     value={formData.comentarios}
                     onChange={handleInputChange}
                     rows="2"
+                    disabled={formMode === 'view'}
                     className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary text-sm"
                   ></textarea>
                 </div>
@@ -551,14 +726,17 @@ const FacturacionXander = () => {
                   onClick={closeModal}
                   className="px-3 py-1.5 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm"
                 >
-                  Cancelar
+                  {formMode === 'view' ? 'Cerrar' : 'Cancelar'}
                 </button>
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 bg-bob-primary text-white rounded-md hover:bg-bob-primary-dark text-sm"
-                >
-                  {formMode === 'create' ? 'Crear' : 'Actualizar'}
-                </button>
+                {formMode !== 'view' && (
+                  <button
+                    type="submit"
+                    disabled={!!montoError}
+                    className={`px-3 py-1.5 ${montoError ? 'bg-gray-400 cursor-not-allowed' : 'bg-bob-primary hover:bg-bob-primary-dark'} text-white rounded-md text-sm`}
+                  >
+                    {formMode === 'create' ? 'Crear' : 'Actualizar'}
+                  </button>
+                )}
               </div>
             </form>
           </div>

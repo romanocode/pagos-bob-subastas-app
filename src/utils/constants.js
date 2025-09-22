@@ -52,11 +52,11 @@ export const API_ROUTES = {
   GARANTIAS: '/garantias',
   GARANTIA_POR_ID: (id) => `/garantias/${id}`,
   GARANTIA_CLIENTE: (id) => `/garantias/cliente/${id}`,
-  VALIDAR_GARANTIA: (id) => `/garantias/${id}/validate`,
+  VALIDAR_GARANTIA: (id) => `/garantias/${id}/validar`,
   SENT_GARANTIA: (id) => `/garantias/${id}/sent`,
-  INVALIDAR_GARANTIA: (id) => `/garantias/${id}/invalid`,
+  INVALIDAR_GARANTIA: (id) => `/garantias/${id}/invalidar`,
   REVOCAR_GARANTIA: (id) => `/garantias/${id}/revoke`,
-  GARANTIA_SENT_CLIENTE: (clienteId) => `/garantias/${clienteId}/client`,
+  GARANTIA_SENT_CLIENTE: (clienteId) => `/garantias/${clienteId}/cliente`,
   
   // Reembolsos
   REEMBOLSOS: '/reembolsos',

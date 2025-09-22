@@ -124,12 +124,39 @@ export const garantiaService = {
   },
 
   /**
+   * Revoca una garantía por parte del cliente
+   * @param {string} id - ID de la garantía
+   * @returns {Promise} Promesa con la respuesta
+   */
+  revokeGarantia: async (id) => {
+    try {
+      const response = await api.patch(API_ROUTES.REVOCAR_GARANTIA(id));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  /**
+   * Elimina una garantía
+   * @param {string} id - ID de la garantía
+   * @returns {Promise} Promesa con la respuesta
+   */
+  delete: async (id) => {
+    try {
+      const response = await api.delete(API_ROUTES.GARANTIA_POR_ID(id));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Obtiene todas las garantías enviadas a un cliente específico
    * @param {string} idGarantia - ID del cliente
    * @returns {Promise} Promesa con la respuesta
    */
   getSentByCliente: async (idGarantia, garantiaData) => {
-    debugger;
     try {
       const response = await api.put(API_ROUTES.GARANTIA_SENT_CLIENTE(idGarantia), garantiaData);
       return response.data;

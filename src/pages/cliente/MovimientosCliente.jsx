@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { garantiaService } from "../../services/garantiaService";
+import { clienteService } from "../../services/clienteService";
 import {
   formatCurrency,
   formatDate,
@@ -25,6 +26,8 @@ export default function MovimientosCliente() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGarantia, setSelectedGarantia] = useState(null);
+  const [isEditable, setIsEditable] = useState(false);
+  const [clienteData, setClienteData] = useState(null);
   const [formData, setFormData] = useState({
     banco: "",
     numCuentaDeposito: "",
@@ -32,30 +35,59 @@ export default function MovimientosCliente() {
     dtFacRuc: "",
     dtFacRazonSocial: "",
   });
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [garantiaToRevoke, setGarantiaToRevoke] = useState(null);
   const [filters, setFilters] = useState({
     fecha_desde: "", // Inicializar como string vacío para evitar problemas con fechas inválidas
     fecha_hasta: "", // Inicializar como string vacío para evitar problemas con fechas inválidas
     estado: "", // Filtro de estado: pendiente, validada, rechazada, revocada
   });
-  
+
   // Inicializar fechas después de montar el componente
   useEffect(() => {
     const unMesAtras = new Date();
     unMesAtras.setMonth(unMesAtras.getMonth() - 1);
-    
+
     setFilters({
       fecha_desde: unMesAtras.toISOString().split("T")[0],
       fecha_hasta: new Date().toISOString().split("T")[0],
-      estado: ""
+      estado: "",
     });
   }, []);
 
   useEffect(() => {
     cargarGarantias();
+    if (currentUser && currentUser.id) {
+      obtenerDatosCliente(currentUser.id);
+    }
   }, [currentUser]);
+
+  const obtenerDatosCliente = async (clienteId) => {
+    try {
+      const response = await clienteService.getById(clienteId);
+      if (response && response.data) {
+        setClienteData(response.data);
+      }
+    } catch (error) {
+      console.error("Error al obtener datos del cliente:", error);
+    }
+  };
 
   const handleOpenModal = (garantia) => {
     setSelectedGarantia(garantia);
+    // Determinar si la garantía está en estado "Pendiente" para permitir edición
+    const estado =
+      (garantia.docAdjunto &&
+        !garantia.validatedAt &&
+        !garantia.invalidatedAt &&
+        !garantia.revokedAt) ||
+      (garantia.validatedAt && !garantia.revokedAt)
+        ? "Validada"
+        : "Pendiente";
+
+    const isPendiente = estado === "Pendiente";
+    setIsEditable(isPendiente);
+
     setFormData({
       banco: garantia.banco || "",
       numCuentaDeposito: garantia.numCuentaDeposito || "",
@@ -106,22 +138,21 @@ export default function MovimientosCliente() {
       if (formData.docAdjunto) {
         try {
           // Crear un nombre único para el archivo
-          const fileExtension = formData.docAdjunto.name.split('.').pop();
-          const fileName = `${Date.now()}_${selectedGarantia.id}.${fileExtension}`;
-          
-          
-          
+          const fileExtension = formData.docAdjunto.name.split(".").pop();
+          const fileName = `${Date.now()}_${
+            selectedGarantia.id
+          }.${fileExtension}`;
+
           // Crear un Blob con el contenido del archivo
           const blob = new Blob([await formData.docAdjunto.arrayBuffer()]);
-          
+
           // Crear un enlace de descarga
-          const downloadLink = document.createElement('a');
+          const downloadLink = document.createElement("a");
           downloadLink.href = URL.createObjectURL(blob);
           downloadLink.download = fileName;
 
           // Guardar solo el nombre del archivo en el formData
           formData.docAdjuntoNombre = downloadLink.href;
-
         } catch (error) {
           console.error("Error al procesar el archivo:", error);
           toast.error("Error al procesar el archivo");
@@ -163,15 +194,40 @@ export default function MovimientosCliente() {
     }
   };
 
+  const handleRevocarGarantia = async () => {
+    if (!garantiaToRevoke) return;
+
+    try {
+      setIsLoading(true);
+      const response = await garantiaService.revokeGarantia(
+        garantiaToRevoke.id
+      );
+
+      if (response.success) {
+        toast.success("Garantía revocada correctamente");
+        setShowConfirmModal(false);
+        setGarantiaToRevoke(null);
+        cargarGarantias(); // Recargar las garantías
+      } else {
+        toast.error("Error al revocar la garantía");
+      }
+    } catch (error) {
+      console.error("Error al revocar garantía:", error);
+      toast.error("Error al revocar la garantía");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const cargarGarantias = async () => {
     setIsLoading(true);
     try {
       if (currentUser && currentUser.id) {
         const response = await garantiaService.getByCliente(currentUser.id);
         let garantiasFiltradas = response.data;
-        
-        console.log('Total garantías obtenidas:', garantiasFiltradas.length);
-        console.log('Filtros aplicados:', filters);
+
+        console.log("Total garantías obtenidas:", garantiasFiltradas.length);
+        console.log("Filtros aplicados:", filters);
 
         // Aplicar filtros
         if (filters.estado) {
@@ -191,49 +247,64 @@ export default function MovimientosCliente() {
             }
             return true;
           });
-          console.log('Después de filtrar por estado:', garantiasFiltradas.length);
+          console.log(
+            "Después de filtrar por estado:",
+            garantiasFiltradas.length
+          );
         }
 
         // Filtrar por fecha solo si ambas fechas están definidas
-         if (filters.fecha_desde && filters.fecha_hasta) {
-           try {
-             console.log('Filtrando por fechas:', filters.fecha_desde, 'hasta', filters.fecha_hasta);
-             
-             // Convertir strings a objetos Date
-             const fechaDesde = new Date(filters.fecha_desde + 'T00:00:00');
-             const fechaHasta = new Date(filters.fecha_hasta + 'T23:59:59');
-             
-             console.log('Fechas convertidas:', fechaDesde, fechaHasta);
-             
-             // Verificar si las fechas son válidas
-             if (!isNaN(fechaDesde.getTime()) && !isNaN(fechaHasta.getTime())) {
-               garantiasFiltradas = garantiasFiltradas.filter(garantia => {
-                 if (!garantia.createdAt) return false;
-                 
-                 const fechaCreacion = new Date(garantia.createdAt);
-                 const resultado = fechaCreacion >= fechaDesde && fechaCreacion <= fechaHasta;
-                 
-                 console.log(
-                   'Garantía:', garantia.id,
-                   'Fecha creación:', fechaCreacion,
-                   'Dentro del rango:', resultado
-                 );
-                 
-                 return resultado;
-               });
-               
-               console.log('Después de filtrar por fecha:', garantiasFiltradas.length);
-             } else {
-               console.error('Fechas inválidas:', { fechaDesde, fechaHasta });
-               toast.error('Las fechas seleccionadas no son válidas');
-             }
-           } catch (error) {
-             console.error('Error al filtrar por fechas:', error);
-             toast.error('Error al procesar las fechas');
-           }
-         } else {
-           console.log('No se aplicó filtro de fechas porque faltan valores');
-         }
+        if (filters.fecha_desde && filters.fecha_hasta) {
+          try {
+            console.log(
+              "Filtrando por fechas:",
+              filters.fecha_desde,
+              "hasta",
+              filters.fecha_hasta
+            );
+
+            // Convertir strings a objetos Date
+            const fechaDesde = new Date(filters.fecha_desde + "T00:00:00");
+            const fechaHasta = new Date(filters.fecha_hasta + "T23:59:59");
+
+            console.log("Fechas convertidas:", fechaDesde, fechaHasta);
+
+            // Verificar si las fechas son válidas
+            if (!isNaN(fechaDesde.getTime()) && !isNaN(fechaHasta.getTime())) {
+              garantiasFiltradas = garantiasFiltradas.filter((garantia) => {
+                if (!garantia.createdAt) return false;
+
+                const fechaCreacion = new Date(garantia.createdAt);
+                const resultado =
+                  fechaCreacion >= fechaDesde && fechaCreacion <= fechaHasta;
+
+                console.log(
+                  "Garantía:",
+                  garantia.id,
+                  "Fecha creación:",
+                  fechaCreacion,
+                  "Dentro del rango:",
+                  resultado
+                );
+
+                return resultado;
+              });
+
+              console.log(
+                "Después de filtrar por fecha:",
+                garantiasFiltradas.length
+              );
+            } else {
+              console.error("Fechas inválidas:", { fechaDesde, fechaHasta });
+              toast.error("Las fechas seleccionadas no son válidas");
+            }
+          } catch (error) {
+            console.error("Error al filtrar por fechas:", error);
+            toast.error("Error al procesar las fechas");
+          }
+        } else {
+          console.log("No se aplicó filtro de fechas porque faltan valores");
+        }
 
         setGarantias(garantiasFiltradas);
       }
@@ -259,11 +330,10 @@ export default function MovimientosCliente() {
     if (garantia.validatedAt) {
       displayText = "Validada";
       badgeClass = "bg-green-100 text-green-800";
-    } else if(garantia.docAdjunto){
+    } else if (garantia.docAdjunto) {
       displayText = "Pendiente de Validación";
       badgeClass = "bg-blue-100 text-blue-800";
-    }
-    else if (garantia.invalidatedAt) {
+    } else if (garantia.invalidatedAt) {
       displayText = "Rechazada";
       badgeClass = "bg-red-100 text-red-800";
     } else if (garantia.revokedAt) {
@@ -293,20 +363,19 @@ export default function MovimientosCliente() {
         <h1 className="text-2xl font-bold text-gray-800">Mis Garantías</h1>
       </div>
 
-      {/* SALDO del Cliente */}
-      <div className="bg-blue-600 rounded-lg p-6 mb-6 shadow-lg">
-        <div className="flex items-center">
-          <div className="flex items-center">
-            <Wallet className="h-6 w-6 text-white mr-3" />
-            <div>
-              <h2 className="text-white font-bold text-lg">Mi Saldo</h2>
-              <p className="text-blue-100 text-sm">Saldo Total</p>
-              <p className="text-white text-3xl font-bold">
-                {formatCurrency(
-                  currentUser.saldoTotalDolar || currentUser.saldo || 0,
-                  "USD"
-                )}
-              </p>
+      {/* Card de Saldo */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg text-white p-4 shadow-lg mb-2">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <Wallet size={20} />
+            <h2 className="text-lg font-semibold">Saldo</h2>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div>
+            <div className="text-blue-200 text-sm">Saldo Total</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(clienteData?.saldoTotalDolar || 0, "USD")}
             </div>
           </div>
         </div>
@@ -431,14 +500,44 @@ export default function MovimientosCliente() {
                         {renderEstadoGarantia(garantia)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        
-                        {!garantia.docAdjunto && (
+                        {/* Show both buttons when status is Pending and no document attached */}
+                        {!garantia.validatedAt &&
+                          !garantia.invalidatedAt &&
+                          !garantia.revokedAt &&
+                          !garantia.docAdjunto && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleOpenModal(garantia)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full"
+                                title="Completar garantía"
+                              >
+                                <FileText size={16} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setGarantiaToRevoke(garantia);
+                                  setShowConfirmModal(true);
+                                }}
+                                className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+                                title="Revocar garantía"
+                              >
+                                <XCircle size={16} />
+                              </button>
+                            </div>
+                          )}
+
+                        {/* Show only complete button when status is Pending with document or Validated */}
+                        {((garantia.docAdjunto &&
+                          !garantia.validatedAt &&
+                          !garantia.invalidatedAt &&
+                          !garantia.revokedAt) ||
+                          (garantia.validatedAt && !garantia.revokedAt)) && (
                           <button
                             onClick={() => handleOpenModal(garantia)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md text-xs flex items-center"
+                            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full"
+                            title="Completar garantía"
                           >
-                            <FileText size={14} className="mr-1" />
-                            Completar datos
+                            <FileText size={16} />
                           </button>
                         )}
                       </td>
@@ -456,7 +555,9 @@ export default function MovimientosCliente() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-6">
-              Completar datos de garantía
+              {isEditable
+                ? "Completar datos de garantía"
+                : "Visualizar datos de garantía"}
             </h2>
             <form
               onSubmit={handleSubmit}
@@ -472,8 +573,13 @@ export default function MovimientosCliente() {
                     name="banco"
                     value={formData.banco}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md ${
+                      isEditable
+                        ? "focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                        : "bg-gray-100 cursor-not-allowed"
+                    }`}
                     required
+                    disabled={!isEditable}
                   />
                 </div>
                 <div>
@@ -485,8 +591,13 @@ export default function MovimientosCliente() {
                     name="numCuentaDeposito"
                     value={formData.numCuentaDeposito}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md ${
+                      isEditable
+                        ? "focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                        : "bg-gray-100 cursor-not-allowed"
+                    }`}
                     required
+                    disabled={!isEditable}
                   />
                 </div>
 
@@ -494,15 +605,35 @@ export default function MovimientosCliente() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Documento Adjunto (PDF o Imagen)
                   </label>
-                  <input
-                    type="file"
-                    accept="application/pdf,image/*"
-                    onChange={handleFileChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
-                    required={
-                      !formData.docAdjunto && !selectedGarantia?.docAdjunto
-                    }
-                  />
+                  {isEditable ? (
+                    <input
+                      type="file"
+                      accept="application/pdf,image/*"
+                      onChange={handleFileChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                      required={
+                        !formData.docAdjunto && !selectedGarantia?.docAdjunto
+                      }
+                    />
+                  ) : (
+                    <div className="flex items-center">
+                      {selectedGarantia?.docAdjunto ? (
+                        <a
+                          href={selectedGarantia.docAdjunto}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-bob-primary hover:underline flex items-center"
+                        >
+                          <FileText className="mr-2" size={16} />
+                          Ver documento adjunto
+                        </a>
+                      ) : (
+                        <span className="text-gray-500">
+                          No hay documento adjunto
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {formData.docAdjunto && (
                     <p className="mt-1 text-sm text-green-600">
                       Archivo seleccionado: {formData.docAdjunto.name}
@@ -523,8 +654,13 @@ export default function MovimientosCliente() {
                     name="dtFacRuc"
                     value={formData.dtFacRuc}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md ${
+                      isEditable
+                        ? "focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                        : "bg-gray-100 cursor-not-allowed"
+                    }`}
                     required
+                    disabled={!isEditable}
                   />
                 </div>
                 <div>
@@ -536,8 +672,13 @@ export default function MovimientosCliente() {
                     name="dtFacRazonSocial"
                     value={formData.dtFacRazonSocial}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md ${
+                      isEditable
+                        ? "focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
+                        : "bg-gray-100 cursor-not-allowed"
+                    }`}
                     required
+                    disabled={!isEditable}
                   />
                 </div>
               </div>
@@ -548,40 +689,70 @@ export default function MovimientosCliente() {
                   onClick={handleCloseModal}
                   className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bob-primary"
                 >
-                  Cancelar
+                  {isEditable ? "Cancelar" : "Cerrar"}
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                  ) : (
-                    "Guardar"
-                  )}
-                </button>
+                {isEditable && (
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-green-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    ) : (
+                      "Guardar"
+                    )}
+                  </button>
+                )}
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para revocar garantía */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">Confirmar revocación</h2>
+            <p className="mb-6">
+              ¿Está seguro que desea revocar esta garantía? Esta acción no se
+              puede deshacer.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleRevocarGarantia()}
+                className="px-4 py-2 bg-red-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700"
+                disabled={isLoading}
+              >
+                {isLoading ? "Procesando..." : "Confirmar"}
+              </button>
+            </div>
           </div>
         </div>
       )}
