@@ -84,7 +84,7 @@ const LoginModal = ({ isOpen, onClose }) => {
           }
           // Credenciales hardcodeadas
           if (credentials.username == cliente.data.correo && credentials.password === '1234') {
-            login({ username: credentials.username, role: 'cliente', id: cliente.data.id });
+            login({ username: credentials.username, role: 'cliente', id: cliente.data.id, nombreCompleto: cliente.data.nombreCompleto });
             onClose();
             navigate('/cliente/dashboard');
           }

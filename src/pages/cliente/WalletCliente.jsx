@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
-import { Eye, FileCheck } from "lucide-react";
+import { Eye, FileCheck, Upload } from "lucide-react";
 import { formatCurrency } from "../../utils/formatters";
 import facturacionService from "../../services/facturacionService";
+import clienteService from "../../services/clienteService";
 
 export default function WalletCliente() {
   const { currentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [facturas, setFacturas] = useState([]);
   const [filters, setFilters] = useState({ estado: '', fecha_desde: '', fecha_hasta: '' });
+  const [showModal, setShowModal] = useState(false);
+  const [selectedFactura, setSelectedFactura] = useState(null);
+  const [clienteData, setClienteData] = useState(null);
 
   useEffect(() => {
     cargarFacturas();
@@ -40,6 +44,26 @@ export default function WalletCliente() {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleVerDetalles = async (factura) => {
+    setSelectedFactura(factura);
+    setShowModal(true);
+    
+    try {
+      // Obtener datos del cliente usando el ID
+      const clienteInfo = await clienteService.getById(factura.idCliente);
+      setClienteData(clienteInfo);
+    } catch (error) {
+      console.error('Error al obtener datos del cliente:', error);
+      toast.error("Error al cargar información del cliente");
+    }
+  };
+  
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedFactura(null);
+    setClienteData(null);
   };
 
   return (
@@ -139,14 +163,14 @@ export default function WalletCliente() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => alert(`Ver detalles de factura: ${factura.id}`)}
+                              onClick={() => handleVerDetalles(factura)}
                               className="text-indigo-600 hover:text-indigo-900"
                               title="Ver detalles"
                             >
                               <Eye size={18} />
                             </button>
                             <button
-                              onClick={() => alert(`Ver documento adjunto de factura: ${factura.id}`)}
+                              onClick={() => window.open(factura.docAdjunto, '_blank')}
                               className="text-blue-600 hover:text-blue-900"
                               title="Ver documento"
                             >
@@ -162,6 +186,95 @@ export default function WalletCliente() {
             )}
           </div>
         </>
+      )}
+    
+      {/* Modal para ver detalles de factura */}
+      {showModal && selectedFactura && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={closeModal}>
+          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">
+                Detalles de Factura
+              </h2>
+              <button 
+                type="button" 
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-y-auto">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cliente
+                  </label>
+                  <div className="w-full px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                    {clienteData ? clienteData.data.nombreCompleto : 'Cargando...'}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Saldo de Cliente
+                  </label>
+                  <div className="w-full px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                    {formatCurrency(clienteData ? clienteData.data.saldoTotalDolar : 0, 'USD')}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Concepto
+                  </label>
+                  <div className="w-full px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                    {selectedFactura.concepto}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Monto (USD)
+                  </label>
+                  <div className="w-full px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                    {formatCurrency(selectedFactura.monto, 'USD')}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Banco
+                  </label>
+                  <div className="w-full px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                    {selectedFactura.banco || 'No especificado'}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Número de Cuenta
+                  </label>
+                  <div className="w-full px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 text-sm">
+                    {selectedFactura.numCuentaDeposito || 'No especificado'}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Comentarios
+                  </label>
+                  <div className="w-full px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 text-sm min-h-[60px]">
+                    {selectedFactura.comentarios || 'Sin comentarios'}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-4 sticky bottom-0 bg-white pt-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-3 py-1.5 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

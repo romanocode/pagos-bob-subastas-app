@@ -40,7 +40,6 @@ export const clienteService = {
    */
   create: async (clienteData) => {
     try {
-      debugger;
       const response = await api.post(API_ROUTES.CLIENTES, clienteData);
       return response.data;
     } catch (error) {
