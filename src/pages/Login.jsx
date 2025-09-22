@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import clienteService from '../services/clienteService';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -56,12 +57,20 @@ const Login = () => {
     
     // Simulación de autenticación con timeout para mostrar el loader
     try {
-      setTimeout(() => {
+      setTimeout(async () => {
         // Credenciales hardcodeadas
+        // Información del cliente
+        const cliente = await clienteService.getByCorreo(credentials.username);
+        if (!cliente) {
+          setErrors({ auth: 'Usuario o contraseña incorrectos' });
+          setIsLoading(false);
+          return;
+        }
+
         if (credentials.username === 'admin' && credentials.password === '1234') {
           login({ username: credentials.username, role: 'admin' });
           navigate('/admin/dashboard');
-        } else if (credentials.username === 'cliente' && credentials.password === '1234') {
+        } else if (credentials.username === cliente.correo && credentials.password === '1234') {
           login({ username: credentials.username, role: 'cliente' });
           navigate('/cliente/dashboard');
         } else {
@@ -186,13 +195,13 @@ const Login = () => {
           <div className="text-center text-sm text-gray-600 mt-4">
             <p>Credenciales de demo:</p>
             <p>Usuario: "admin" / Contraseña: "1234" → Panel de administrador</p>
-            <p>Usuario: "cliente" / Contraseña: "1234" → Panel de cliente</p>
+            <p>Usuario: "correocliente" / Contraseña: "1234" → Panel de cliente</p>
           </div>
         </form>
         
         <div className="text-center mt-6">
           <p className="text-xs text-gray-500">
-            &copy; 2023 BobSubastas. Todos los derechos reservados.
+            &copy; 2025 BobSubastas. Todos los derechos reservados.
           </p>
         </div>
       </div>

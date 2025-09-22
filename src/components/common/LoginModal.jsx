@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { CreditCard, Info } from 'lucide-react';
+import clienteService from '../../services/clienteService';
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -66,19 +67,27 @@ const LoginModal = ({ isOpen, onClose }) => {
     
     // Simulación de autenticación con timeout para mostrar el loader
     try {
-      setTimeout(() => {
-        // Credenciales hardcodeadas
-        if (credentials.username === 'admin' && credentials.password === '1234') {
-          login({ username: credentials.username, role: 'xander' });
-          onClose();
-          navigate('/xander/dashboard');
-        } else if (credentials.username === 'cliente' && credentials.password === '1234') {
-          login({ username: credentials.username, role: 'cliente' });
-          onClose();
-          navigate('/cliente/dashboard');
-        } else {
-          setErrors({ auth: 'Usuario o contraseña incorrectos' });
-          setIsLoading(false);
+      setTimeout(async () => {
+        if(credentials.username === 'admin'){
+          if (credentials.username === 'admin' && credentials.password === '1234') {
+            login({ username: credentials.username, role: 'xander' });
+            onClose();
+            navigate('/xander/dashboard');
+          }
+        }else{
+          // Información del cliente
+          const cliente = await clienteService.getByCorreo(credentials.username);
+          if (credentials.username != "admin" && !cliente) {
+            setErrors({ auth: 'Usuario o contraseña incorrectoss' });
+            setIsLoading(false);
+            return;
+          }
+          // Credenciales hardcodeadas
+          if (credentials.username == cliente.data.correo && credentials.password === '1234') {
+            login({ username: credentials.username, role: 'cliente', id: cliente.data.id });
+            onClose();
+            navigate('/cliente/dashboard');
+          }
         }
       }, 1000); // 1 segundo de "autenticación"
     } catch (error) {
@@ -162,8 +171,8 @@ const LoginModal = ({ isOpen, onClose }) => {
               <Info size={16} className="text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
               <div className="text-xs text-blue-700">
                 <p className="font-semibold mb-1">Credenciales de prueba:</p>
-                <p><span className="font-medium">Xander:</span> usuario: admin, clave: 1234</p>
-                <p><span className="font-medium">Cliente:</span> usuario: cliente, clave: 1234</p>
+                <p><span className="font-medium">Admin:</span> usuario: admin, clave: 1234</p>
+                <p><span className="font-medium">Cliente:</span> usuario: correo de usuario, clave: 1234</p>
               </div>
             </div>
           </div>

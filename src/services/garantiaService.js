@@ -68,8 +68,9 @@ export const garantiaService = {
    * @returns {Promise} Promesa con la respuesta
    */
   validate: async (id) => {
+    debugger;
     try {
-      const response = await api.put(API_ROUTES.VALIDAR_GARANTIA(id));
+      const response = await api.patch(API_ROUTES.VALIDAR_GARANTIA(id));
       return response.data;
     } catch (error) {
       throw error;
@@ -77,13 +78,17 @@ export const garantiaService = {
   },
 
   /**
-   * Elimina una garantía
+   * Invalidar una garantía
+   */
+
+  /**
+   * Invalidar una garantía
    * @param {string} id - ID de la garantía
    * @returns {Promise} Promesa con la respuesta
    */
-  delete: async (id) => {
+  invalidate: async (id) => {
     try {
-      const response = await api.delete(API_ROUTES.GARANTIA_POR_ID(id));
+      const response = await api.patch(API_ROUTES.INVALIDAR_GARANTIA(id));
       return response.data;
     } catch (error) {
       throw error;
@@ -97,14 +102,41 @@ export const garantiaService = {
    */
   getByCliente: async (clienteId) => {
     try {
-      debugger
       const response = await api.get(API_ROUTES.GARANTIA_CLIENTE(clienteId));
-      debugger
       return response.data;
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  /**
+   * Informa que la garantía ya ha sido enviado al cliente
+   * @param {*} id ID de la garantía
+   * @returns {Promise} Promesa con la respuesta
+   */
+  sentGarantia: async (id) => {
+    try {
+      const response = await api.patch(API_ROUTES.SENT_GARANTIA(id));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene todas las garantías enviadas a un cliente específico
+   * @param {string} idGarantia - ID del cliente
+   * @returns {Promise} Promesa con la respuesta
+   */
+  getSentByCliente: async (idGarantia, garantiaData) => {
+    debugger;
+    try {
+      const response = await api.put(API_ROUTES.GARANTIA_SENT_CLIENTE(idGarantia), garantiaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default garantiaService;

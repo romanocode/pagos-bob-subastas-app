@@ -24,10 +24,7 @@ const GestionClientesXander = () => {
     nombreCompleto: '',
     tipDocumento: 'DNI',
     numDocumento: '',
-    numCelular: '',
-    dtFacRuc: '',
-    dtFacRazonSocial: ''
-    // saldoTotalDolar y estado se manejan automáticamente en el backend
+    numCelular: ''
   });
 
   useEffect(() => {
@@ -63,10 +60,7 @@ const GestionClientesXander = () => {
       nombreCompleto: '',
       tipDocumento: 'DNI',
       numDocumento: '',
-      numCelular: '',
-      dtFacRuc: '',
-      dtFacRazonSocial: ''
-      // saldoTotalDolar y estado se manejan automáticamente en el backend
+      numCelular: ''
     });
     setFormMode('create');
     setShowModal(true);
@@ -79,10 +73,7 @@ const GestionClientesXander = () => {
       nombreCompleto: cliente.nombreCompleto,
       tipDocumento: cliente.tipDocumento,
       numDocumento: cliente.numDocumento,
-      numCelular: cliente.numCelular,
-      dtFacRuc: cliente.dtFacRuc,
-      dtFacRazonSocial: cliente.dtFacRazonSocial
-      // saldoTotalDolar y estado se manejan automáticamente en el backend
+      numCelular: cliente.numCelular
     });
     setFormMode('edit');
     setShowModal(true);
@@ -107,7 +98,7 @@ const GestionClientesXander = () => {
   const cambiarEstadoCliente = async () => {
     try {
       const nuevoEstado = accionEstado === 'activar';
-      await clienteService.update(currentCliente.idCliente, { ...currentCliente, estado: nuevoEstado });
+      await clienteService.patch(currentCliente.id, { ...currentCliente, activo: nuevoEstado });
       toast.success(nuevoEstado ? MENSAJES.CLIENTE_ACTIVADO : MENSAJES.CLIENTE_INACTIVADO);
       closeConfirmModal();
       cargarClientes();
@@ -136,7 +127,7 @@ const GestionClientesXander = () => {
         await clienteService.create(formData);
         toast.success(MENSAJES.CLIENTE_CREADO);
       } else {
-        await clienteService.update(currentCliente.idCliente, formData);
+        await clienteService.update(currentCliente.id, formData);
         toast.success(MENSAJES.CLIENTE_ACTUALIZADO);
       }
       closeModal();
@@ -214,7 +205,7 @@ const GestionClientesXander = () => {
                 </tr>
               ) : (
                 filteredClientes.map((cliente) => (
-                  <tr key={cliente.idCliente} className="hover:bg-gray-50">
+                  <tr key={cliente.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {cliente.nombreCompleto}
                     </td>
@@ -234,8 +225,8 @@ const GestionClientesXander = () => {
                       {formatCurrency(cliente.saldoTotalDolar, 'USD')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${cliente.estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {cliente.estado ? 'Activo' : 'Inactivo'}
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${cliente.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {cliente.activo ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -249,14 +240,14 @@ const GestionClientesXander = () => {
                           {/* Editar */}
                         </button>
                         <button
-                          onClick={() => verGarantias(cliente.idCliente, cliente.nombreCompleto)}
+                          onClick={() => verGarantias(cliente.id, cliente.nombreCompleto)}
                           className="text-green-600 hover:text-green-900 flex items-center gap-1"
                           title='Ver Garantías Cliente'
                         >
                           <Eye size={16} />
                           {/* Ver garantías */}
                         </button>
-                        {cliente.estado ? (
+                        {cliente.activo ? (
                           <button
                             onClick={() => openConfirmModal(cliente, 'inactivar')}
                             className="text-red-600 hover:text-red-900 flex items-center gap-1"
@@ -363,34 +354,6 @@ const GestionClientesXander = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
                   />
                 </div>
-                {/* El campo Saldo Total (USD) se ha eliminado ya que viene por defecto de la base de datos */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    RUC para Facturación *
-                  </label>
-                  <input
-                    type="text"
-                    name="dtFacRuc"
-                    value={formData.dtFacRuc}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Razón Social para Facturación *
-                  </label>
-                  <input
-                    type="text"
-                    name="dtFacRazonSocial"
-                    value={formData.dtFacRazonSocial}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-bob-primary focus:border-bob-primary"
-                  />
-                </div>
-                {/* El checkbox de Cliente Activo se ha eliminado ya que se maneja automáticamente en el backend */}
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button

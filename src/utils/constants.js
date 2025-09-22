@@ -43,15 +43,20 @@ export const API_ROUTES = {
   // Clientes
   CLIENTES: '/clientes',
   CLIENTE_POR_ID: (id) => `/clientes/${id}`,
+  CLIENTE_POR_CORREO: (correo) => `/clientes/correo/${correo}`,
+  
+  // Archivos
+  UPLOAD_FILE: '/upload',
   
   // Garantías
   GARANTIAS: '/garantias',
   GARANTIA_POR_ID: (id) => `/garantias/${id}`,
   GARANTIA_CLIENTE: (id) => `/garantias/cliente/${id}`,
   VALIDAR_GARANTIA: (id) => `/garantias/${id}/validate`,
-  PAGAR_GARANTIA: (id) => `/garantias/${id}/paid`,
+  SENT_GARANTIA: (id) => `/garantias/${id}/sent`,
   INVALIDAR_GARANTIA: (id) => `/garantias/${id}/invalid`,
   REVOCAR_GARANTIA: (id) => `/garantias/${id}/revoke`,
+  GARANTIA_SENT_CLIENTE: (clienteId) => `/garantias/${clienteId}/client`,
   
   // Reembolsos
   REEMBOLSOS: '/reembolsos',
