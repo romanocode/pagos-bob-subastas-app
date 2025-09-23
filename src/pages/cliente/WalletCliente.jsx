@@ -28,9 +28,9 @@ export default function WalletCliente() {
       if (response.data.length === 0) {
         toast.info("No tienes facturas disponibles");
       }
-
+      const facturasValidadas = response.data.filter(factura => factura.validatedAt);
       // Filtrar la data por fechas de creación
-      const filteredFacturas = response.data.filter(factura => {
+      const filteredFacturas = facturasValidadas.filter(factura => {
         const facturaDate = new Date(factura.createdAt);
         const desde = filters.fecha_desde ? new Date(filters.fecha_desde) : null;
         const hasta = filters.fecha_hasta ? new Date(filters.fecha_hasta) : null;

@@ -225,7 +225,7 @@ const FacturacionXander = () => {
       if (clienteSeleccionado) {
         setFormData(prevData => ({
           ...prevData,
-          saldoCliente: clienteSeleccionado.saldoTotalDolar || 0
+          saldoCliente: clienteSeleccionado ? clienteSeleccionado.saldoTotalDolar : 0
         }));
         
         // Validar el monto si ya existe

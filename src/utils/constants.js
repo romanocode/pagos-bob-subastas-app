@@ -52,9 +52,9 @@ export const API_ROUTES = {
   GARANTIAS: '/garantias',
   GARANTIA_POR_ID: (id) => `/garantias/${id}`,
   GARANTIA_CLIENTE: (id) => `/garantias/cliente/${id}`,
-  VALIDAR_GARANTIA: (id) => `/garantias/${id}/validar`,
+  VALIDAR_GARANTIA: (id) => `/garantias/${id}/validate`,
   SENT_GARANTIA: (id) => `/garantias/${id}/sent`,
-  INVALIDAR_GARANTIA: (id) => `/garantias/${id}/invalidar`,
+  INVALIDAR_GARANTIA: (id) => `/garantias/${id}/invalid`,
   REVOCAR_GARANTIA: (id) => `/garantias/${id}/revoke`,
   GARANTIA_SENT_CLIENTE: (clienteId) => `/garantias/${clienteId}/cliente`,
   

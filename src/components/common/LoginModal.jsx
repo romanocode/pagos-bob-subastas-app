@@ -72,7 +72,7 @@ const LoginModal = ({ isOpen, onClose }) => {
           if (credentials.username === 'admin' && credentials.password === '1234') {
             login({ username: credentials.username, role: 'xander' });
             onClose();
-            navigate('/xander/dashboard');
+            navigate('/xander/subastas');
           }
         }else{
           // Información del cliente
@@ -86,7 +86,7 @@ const LoginModal = ({ isOpen, onClose }) => {
           if (credentials.username == cliente.data.correo && credentials.password === '1234') {
             login({ username: credentials.username, role: 'cliente', id: cliente.data.id, nombreCompleto: cliente.data.nombreCompleto });
             onClose();
-            navigate('/cliente/dashboard');
+            navigate('/cliente/movimientos');
           }
         }
       }, 1000); // 1 segundo de "autenticación"

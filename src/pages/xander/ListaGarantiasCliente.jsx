@@ -304,13 +304,13 @@ const ListaGarantiasCliente = () => {
       if (confirmAction === "validar") {
         await garantiaService.validate(garantiaToAction.id);
         toast.success("Garantía validada correctamente");
-        
+
         // Recargar datos y actualizar el saldo
         await cargarDatos();
       } else if (confirmAction === "invalidar") {
         await garantiaService.invalidate(garantiaToAction.id);
         toast.success("Garantía invalidada correctamente");
-        
+
         // Recargar datos y actualizar el saldo
         await cargarDatos();
       } else if (confirmAction === "eliminar") {
@@ -608,7 +608,7 @@ const ListaGarantiasCliente = () => {
                       {/* Modal de Facturación */}
                       {showFacturaModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                          <div className="bg-white rounded-lg p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
                             <h2 className="text-xl font-bold mb-4">
                               Registrar Factura
                             </h2>
@@ -774,19 +774,23 @@ const ListaGarantiasCliente = () => {
                               <Edit size={16} />
                             </button>
                             <button
-                            onClick={() => enviarMensajeWhatsApp(cliente, garantia.id)}
-                            className="text-green-600 hover:text-green-900 flex items-center gap-1"
-                            title="Enviar mensaje de WhatsApp"
-                          >
-                            <MessageCircle size={16} />
-                          </button>
-                          <button
-                            onClick={() => mostrarConfirmacion("eliminar", garantia)}
-                            className="text-red-600 hover:text-red-900 flex items-center gap-1"
-                            title="Eliminar Garantía"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                              onClick={() =>
+                                enviarMensajeWhatsApp(cliente, garantia.id)
+                              }
+                              className="text-green-600 hover:text-green-900 flex items-center gap-1"
+                              title="Enviar mensaje de WhatsApp"
+                            >
+                              <MessageCircle size={16} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                mostrarConfirmacion("eliminar", garantia)
+                              }
+                              className="text-red-600 hover:text-red-900 flex items-center gap-1"
+                              title="Eliminar Garantía"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </>
                         )}
                       {garantia.docAdjunto &&
@@ -846,7 +850,7 @@ const ListaGarantiasCliente = () => {
       {/* Modal para editar garantía */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h2 className="text-xl font-bold mb-6">
               {formMode === "create" ? "Nueva Garantía" : "Editar Garantía"}
             </h2>

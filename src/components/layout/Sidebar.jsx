@@ -19,11 +19,6 @@ const Sidebar = ({ userType }) => {
 
   const clienteMenuItems = [
     {
-      path: '/cliente/dashboard',
-      name: 'Dashboard',
-      icon: Home
-    },
-    {
       path: '/cliente/wallet',
       name: 'Facturación',
       icon: Wallet
@@ -69,11 +64,6 @@ const Sidebar = ({ userType }) => {
   ];
 
   const xanderMenuItems = [
-    {
-      path: '/xander/dashboard',
-      name: 'Dashboard Xander',
-      icon: BarChart3
-    },
     {
       path: '/xander/subastas',
       name: 'Subastas',
